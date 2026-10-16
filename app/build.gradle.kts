@@ -34,6 +34,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true   // BuildConfig.DEBUG gates the live-state preview on the deck
     }
 }
 

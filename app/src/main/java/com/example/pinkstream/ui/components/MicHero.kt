@@ -29,7 +29,10 @@ import com.example.pinkstream.ui.theme.DeckType
 /** UNKNOWN = live styling without a pill, used until live state works (milestone 5). */
 enum class MicState { LIVE, MUTED, UNKNOWN }
 
-/** The full-width 82 dp microphone tile at the top of the deck. Visual only. */
+/**
+ * The full-width 82 dp microphone tile at the top of the deck. Visual only.
+ * [subtitle] replaces the state's own second line (the deck uses it for "No action").
+ */
 @Composable
 fun MicHero(
     label: String,
@@ -37,10 +40,11 @@ fun MicHero(
     state: MicState,
     modifier: Modifier = Modifier,
     offline: Boolean = false,
+    subtitle: String? = null,
 ) {
     val colors = DeckTheme.colors
     val palette = if (state == MicState.MUTED) colors.heroMuted else colors.heroLive
-    val subtitle = when (state) {
+    val secondLine = subtitle ?: when (state) {
         MicState.LIVE -> "Tap to mute"
         MicState.MUTED -> "Chat can't hear you"
         MicState.UNKNOWN -> "Tap to toggle"
@@ -74,7 +78,7 @@ fun MicHero(
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(label, style = DeckType.heroTitle, color = palette.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(subtitle, style = DeckType.heroSubtitle, color = palette.subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(secondLine, style = DeckType.heroSubtitle, color = palette.subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         if (state != MicState.UNKNOWN) {
             Row(

@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.pinkstream.data.deck.ActionCatalog
+import com.example.pinkstream.data.deck.DeckRepository
+import com.example.pinkstream.data.live.LiveStateRepository
 import com.example.pinkstream.data.settings.SettingsRepository
 import com.example.pinkstream.data.streamerbot.StreamerBotClient
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +19,7 @@ import java.util.concurrent.TimeUnit
 
 // One DataStore per file for the whole process; the delegate makes sure of that.
 private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+private val Context.deckDataStore: DataStore<Preferences> by preferencesDataStore(name = "deck")
 
 /**
  * Holds the app-wide objects (the Streamer.bot client, repositories) so screens can
@@ -40,6 +44,12 @@ class AppContainer(val appContext: Context) {
     val streamerBot = StreamerBotClient(httpClient)
 
     val settings = SettingsRepository(appContext.settingsDataStore)
+
+    val deck = DeckRepository(appContext.deckDataStore)
+
+    val actions = ActionCatalog(streamerBot, deck, appScope)
+
+    val liveState = LiveStateRepository(appScope)
 
     /** Called once at startup: connect to wherever Settings says the PC is. */
     fun connectWithSavedSettings() {
