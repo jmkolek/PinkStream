@@ -59,13 +59,17 @@ class StreamerBotClient(private val httpClient: OkHttpClient) {
     private var retryJob: Job? = null
     private val pending = HashMap<String, CompletableDeferred<JsonObject>>()
 
-    fun connect(host: String, port: Int, password: String) {
+    /**
+     * Drops any current connection and connects to the new place. The returned Job
+     * finishes once the new attempt has started (state is Connecting, or Failed for a
+     * bad address), so a caller can wait for it before watching [state] for the result.
+     */
+    fun connect(host: String, port: Int, password: String): Job =
         scope.launch {
             target = Target(host, port, password)
             failedAttempts = 0
             open()
         }
-    }
 
     fun disconnect() {
         scope.launch {
@@ -180,7 +184,7 @@ class StreamerBotClient(private val httpClient: OkHttpClient) {
         }
         val password = target?.password.orEmpty()
         if (password.isEmpty()) {
-            _state.value = ConnectionState.Failed(PASSWORD_NEEDED)
+            _state.value = ConnectionState.Failed(PASSWORD_NEEDED, passwordNeeded = true)
             close()
             return
         }

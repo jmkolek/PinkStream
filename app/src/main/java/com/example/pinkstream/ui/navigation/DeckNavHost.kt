@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.pinkstream.ui.connectiontest.ConnectionTestScreen
 import com.example.pinkstream.ui.placeholder.PlaceholderScreen
+import com.example.pinkstream.ui.settings.SettingsScreen
 import com.example.pinkstream.ui.themecheck.ThemeCheckScreen
 
 /** Route names. `edit/{buttonId}` carries the id of the tile being edited. */
@@ -30,7 +31,10 @@ fun DeckNavHost() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Routes.CONNECTION_TEST) {
         composable(Routes.CONNECTION_TEST) {
-            ConnectionTestScreen(onOpenThemeCheck = { navController.navigate(Routes.THEME_CHECK) })
+            ConnectionTestScreen(
+                onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                onOpenThemeCheck = { navController.navigate(Routes.THEME_CHECK) },
+            )
         }
         composable(Routes.THEME_CHECK) {
             ThemeCheckScreen(
@@ -43,7 +47,7 @@ fun DeckNavHost() {
             PlaceholderScreen(title = "Deck", note = "Coming in milestone 3.", onBack = { navController.popBackStack() })
         }
         composable(Routes.SETTINGS) {
-            PlaceholderScreen(title = "Settings", note = "Coming in milestone 2.", onBack = { navController.popBackStack() })
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
         composable(
             route = Routes.EDIT,

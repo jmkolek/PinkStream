@@ -47,6 +47,7 @@ val DayDeckColors = DeckColors(
     onErrorContainer = Color(0xFF7A1B12),
     onAirShadow = Color(0xFFB23A68).copy(alpha = 0.30f),
     raisedShadow = Color(0xFFB23A68).copy(alpha = 0.08f),
+    segmentShadow = Color(0xFF3B1F2C).copy(alpha = 0.12f),
     heroLive = HeroPalette(
         container = Color(0xFFFFFFFF),
         border = Color(0xFFF1DEE4),
@@ -112,6 +113,7 @@ val NightDeckColors = DeckColors(
     onErrorContainer = Color(0xFFFFDAD6),
     onAirShadow = Color(0xFFEC8FB0).copy(alpha = 0.22f),
     raisedShadow = Color.Transparent,        // raised shadows are day only
+    segmentShadow = Color.Transparent,
     heroLive = HeroPalette(
         container = Color(0xFF281820),
         border = Color(0xFF3D2732),

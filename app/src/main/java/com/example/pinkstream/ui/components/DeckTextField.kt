@@ -12,13 +12,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -30,6 +33,7 @@ import com.example.pinkstream.ui.theme.DeckType
  * The Settings-style field: label above, 48 dp inset box, helper or error below.
  * Built on BasicTextField (not Material's OutlinedTextField) to match the mockups.
  * Focused: 1.5 dp primary border. Error: 1.5 dp error border plus the message.
+ * [onFocusLost] runs when the user leaves the field (Settings saves there).
  */
 @Composable
 fun DeckTextField(
@@ -41,6 +45,8 @@ fun DeckTextField(
     helper: String? = null,
     error: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    onFocusLost: () -> Unit = {},
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailing: (@Composable () -> Unit)? = null,
 ) {
@@ -48,6 +54,9 @@ fun DeckTextField(
     // The interaction source reports focus, which drives the border colour.
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
+    // onFocusChanged also reports "not focused" when the field first appears; only
+    // a change from focused to not focused counts as leaving it.
+    val hadFocus = remember { mutableStateOf(false) }
     val (borderWidth, borderColor) = when {
         error != null -> 1.5.dp to colors.error
         focused -> 1.5.dp to colors.primary
@@ -60,10 +69,15 @@ fun DeckTextField(
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
+            modifier = Modifier.onFocusChanged { state ->
+                if (hadFocus.value && !state.isFocused) onFocusLost()
+                hadFocus.value = state.isFocused
+            },
             singleLine = true,
             textStyle = DeckType.fieldSettings.copy(color = colors.ink),
             cursorBrush = SolidColor(colors.primary),
             keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
             visualTransformation = visualTransformation,
             interactionSource = interactionSource,
             decorationBox = { innerTextField ->

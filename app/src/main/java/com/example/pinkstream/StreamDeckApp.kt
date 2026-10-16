@@ -16,6 +16,7 @@ class StreamDeckApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        container.connectWithSavedSettings()
 
         // ProcessLifecycleOwner tracks the whole app, not one screen: onStart when the
         // first screen becomes visible, onStop shortly after the last one is hidden.

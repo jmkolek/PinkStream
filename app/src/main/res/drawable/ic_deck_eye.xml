@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stream deck icon "eye": 24 x 24, 1.8 stroke, round caps. Tint it where it's used.
+     Added in milestone 2 for the password show/hide toggle; same outline as ic_deck_eye_off. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M3 12s3.3-6 9-6 9 6 9 6-3.3 6-9 6-9-6-9-6z"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M15 12a3 3 0 1 1-6 0a3 3 0 1 1 6 0z"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

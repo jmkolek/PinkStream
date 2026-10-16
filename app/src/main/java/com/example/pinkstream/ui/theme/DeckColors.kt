@@ -68,6 +68,7 @@ data class DeckColors(
     val onErrorContainer: Color,
     val onAirShadow: Color,
     val raisedShadow: Color,      // the coloured part of the raised-card shadow (day only)
+    val segmentShadow: Color,     // under the selected option of a segmented control (day only)
     val heroLive: HeroPalette,
     val heroMuted: HeroPalette,
 ) {
