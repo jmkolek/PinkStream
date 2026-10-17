@@ -34,7 +34,7 @@ import com.example.pinkstream.ui.theme.DeckType
 import com.example.pinkstream.ui.theme.ThemeMode
 import com.example.pinkstream.ui.theme.TileColor
 
-/** Settings (mockup 05-settings): the connection to Streamer.bot and how the deck behaves. */
+/** Settings (mockup 05-settings): the connections to Streamer.bot and OBS, and how the deck behaves. */
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
@@ -44,6 +44,7 @@ fun SettingsScreen(
     val form by viewModel.form.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val status by viewModel.status.collectAsStateWithLifecycle()
+    val obsStatus by viewModel.obsStatus.collectAsStateWithLifecycle()
 
     Column(
         Modifier
@@ -64,7 +65,7 @@ fun SettingsScreen(
         val loadedSettings = settings
         if (loadedForm != null && loadedSettings != null) {
             SectionLabel("Connection", top = 20.dp, bottom = 10.dp)
-            ConnectionCard(form = loadedForm, status = status, viewModel = viewModel)
+            ConnectionCard(form = loadedForm, status = status, obsStatus = obsStatus, viewModel = viewModel)
 
             SectionLabel("Deck", top = 22.dp, bottom = 10.dp)
             DeckCard(loadedSettings, viewModel)

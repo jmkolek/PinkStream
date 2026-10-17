@@ -29,8 +29,11 @@ import com.example.pinkstream.ui.theme.DeckShapes
 import com.example.pinkstream.ui.theme.DeckTheme
 import com.example.pinkstream.ui.theme.DeckType
 
+/** SETTINGS: 48 dp inset box inside a card. EDIT: 52 dp white box on the page (Edit button). */
+enum class FieldStyle { SETTINGS, EDIT }
+
 /**
- * The Settings-style field: label above, 48 dp inset box, helper or error below.
+ * A text field: optional label above, the box, helper or error below.
  * Built on BasicTextField (not Material's OutlinedTextField) to match the mockups.
  * Focused: 1.5 dp primary border. Error: 1.5 dp error border plus the message.
  * [onFocusLost] runs when the user leaves the field (Settings saves there).
@@ -39,8 +42,9 @@ import com.example.pinkstream.ui.theme.DeckType
 fun DeckTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String,
+    label: String?,
     modifier: Modifier = Modifier,
+    style: FieldStyle = FieldStyle.SETTINGS,
     placeholder: String? = null,
     helper: String? = null,
     error: String? = null,
@@ -60,12 +64,19 @@ fun DeckTextField(
     val (borderWidth, borderColor) = when {
         error != null -> 1.5.dp to colors.error
         focused -> 1.5.dp to colors.primary
-        else -> 1.dp to colors.fieldBorder
+        else -> 1.dp to null
     }
 
+    val edit = style == FieldStyle.EDIT
+    val textStyle = if (edit) DeckType.field else DeckType.fieldSettings
+    val shape = if (edit) DeckShapes.editField else DeckShapes.settingsField
+    val idleBorder = if (edit) colors.hairline else colors.fieldBorder
+
     Column(modifier.fillMaxWidth()) {
-        Text(label, style = DeckType.fieldLabel, color = colors.inkSecondary)
-        Spacer(Modifier.height(6.dp))
+        if (label != null) {
+            Text(label, style = DeckType.fieldLabel, color = colors.inkSecondary)
+            Spacer(Modifier.height(6.dp))
+        }
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
@@ -74,7 +85,7 @@ fun DeckTextField(
                 hadFocus.value = state.isFocused
             },
             singleLine = true,
-            textStyle = DeckType.fieldSettings.copy(color = colors.ink),
+            textStyle = textStyle.copy(color = colors.ink),
             cursorBrush = SolidColor(colors.primary),
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
@@ -84,15 +95,15 @@ fun DeckTextField(
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
-                        .background(colors.fieldBg, DeckShapes.settingsField)
-                        .border(borderWidth, borderColor, DeckShapes.settingsField)
-                        .padding(start = 14.dp, end = if (trailing != null) 4.dp else 14.dp),
+                        .height(if (edit) 52.dp else 48.dp)
+                        .background(if (edit) colors.surface else colors.fieldBg, shape)
+                        .border(borderWidth, borderColor ?: idleBorder, shape)
+                        .padding(start = if (edit) 16.dp else 14.dp, end = if (trailing != null) 4.dp else if (edit) 16.dp else 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(Modifier.weight(1f)) {
                         if (value.isEmpty() && placeholder != null) {
-                            Text(placeholder, style = DeckType.fieldSettings, color = colors.placeholder)
+                            Text(placeholder, style = textStyle, color = colors.placeholder)
                         }
                         innerTextField()
                     }

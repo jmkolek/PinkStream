@@ -21,8 +21,15 @@ class StreamDeckApp : Application() {
         // ProcessLifecycleOwner tracks the whole app, not one screen: onStart when the
         // first screen becomes visible, onStop shortly after the last one is hidden.
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onStart(owner: LifecycleOwner) = container.streamerBot.onAppForeground()
-            override fun onStop(owner: LifecycleOwner) = container.streamerBot.onAppBackground()
+            override fun onStart(owner: LifecycleOwner) {
+                container.streamerBot.onAppForeground()
+                container.obs.onAppForeground()
+            }
+
+            override fun onStop(owner: LifecycleOwner) {
+                container.streamerBot.onAppBackground()
+                container.obs.onAppBackground()
+            }
         })
     }
 }

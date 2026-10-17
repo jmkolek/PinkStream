@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.pinkstream.StreamDeckApp
+import com.example.pinkstream.data.obs.ObsClient
 import com.example.pinkstream.data.settings.AppSettings
 import com.example.pinkstream.data.settings.ConnectionTarget
 import com.example.pinkstream.data.settings.ConnectionValidation
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -36,6 +38,10 @@ data class ConnectionForm(
     val hostError: String? = null,
     val portError: String? = null,
     val passwordVisible: Boolean = false,
+    val obsPort: String,
+    val obsPassword: String,
+    val obsPortError: String? = null,
+    val obsPasswordVisible: Boolean = false,
 )
 
 /**
@@ -48,6 +54,7 @@ data class ConnectionForm(
 class SettingsViewModel(
     private val repository: SettingsRepository,
     private val client: StreamerBotClient,
+    private val obs: ObsClient,
     private val appScope: CoroutineScope,
 ) : ViewModel() {
 
@@ -70,8 +77,13 @@ class SettingsViewModel(
                 connectionStatus(client.state.value, ActionsLookup.Unknown, null),
             )
 
-    /** Where the client was last told to connect. Starts as the saved values: the app connects with them at launch. */
+    val obsStatus: StateFlow<ConnectionStatus> =
+        obs.state.map(::obsStatus)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), obsStatus(obs.state.value))
+
+    /** Where the clients were last told to connect. Start as the saved values: the app connects with them at launch. */
     private var applied: ConnectionTarget? = null
+    private var appliedObs: ConnectionTarget? = null
     private var testJob: Job? = null
     private var lookupJob: Job? = null
 
@@ -79,7 +91,11 @@ class SettingsViewModel(
         viewModelScope.launch {
             val saved = repository.settings.first()
             applied = saved.connection
-            _form.value = ConnectionForm(saved.host, saved.port.toString(), saved.password)
+            appliedObs = saved.obsConnection
+            _form.value = ConnectionForm(
+                saved.host, saved.port.toString(), saved.password,
+                obsPort = saved.obsPort.toString(), obsPassword = saved.obsPassword,
+            )
         }
         viewModelScope.launch {
             client.state.collect { state ->
@@ -133,18 +149,45 @@ class SettingsViewModel(
         save { it.setPassword(f.password) }
     }
 
-    /** Saves the fields, reconnects with them, then counts the actions. */
+    fun onObsPortChange(value: String) = editForm { it.copy(obsPort = value.filter(Char::isDigit).take(5), obsPortError = null) }
+
+    fun onObsPasswordChange(value: String) = editForm { it.copy(obsPassword = value) }
+
+    fun toggleObsPasswordVisible() = editForm { it.copy(obsPasswordVisible = !it.obsPasswordVisible) }
+
+    fun onObsPortFocusLost() {
+        val f = _form.value ?: return
+        val error = ConnectionValidation.portError(f.obsPort)
+        editForm { it.copy(obsPortError = error) }
+        val port = ConnectionValidation.parsePort(f.obsPort)
+        if (port != null) save { it.setObsPort(port) }
+    }
+
+    fun onObsPasswordFocusLost() {
+        val f = _form.value ?: return
+        save { it.setObsPassword(f.obsPassword) }
+    }
+
+    /** Saves the fields, reconnects to Streamer.bot and OBS with them, then counts the actions. */
     fun testConnection() {
         val f = _form.value ?: return
         val hostError = ConnectionValidation.hostError(f.host)
         val portError = ConnectionValidation.portError(f.port)
-        editForm { it.copy(hostError = hostError, portError = portError) }
+        val obsPortError = ConnectionValidation.portError(f.obsPort)
+        editForm { it.copy(hostError = hostError, portError = portError, obsPortError = obsPortError) }
         val port = ConnectionValidation.parsePort(f.port)
-        if (hostError != null || port == null) return
+        val obsPort = ConnectionValidation.parsePort(f.obsPort)
+        if (hostError != null || port == null || obsPort == null) return
 
         val target = ConnectionTarget(f.host.trim(), port, f.password)
-        save { it.setConnection(target) }
+        val obsTarget = ConnectionTarget(target.host, obsPort, f.obsPassword)
+        save {
+            it.setConnection(target)
+            it.setObsConnection(obsPort, f.obsPassword)
+        }
         applied = target
+        appliedObs = obsTarget
+        obs.connect(obsTarget.host, obsTarget.port, obsTarget.password)
         lastFailure.value = null
         clearLookup()
 
@@ -171,7 +214,7 @@ class SettingsViewModel(
 
     /**
      * The screen is gone for good (the user went back). A field may still have been
-     * focused, so save what's valid, and reconnect if the address changed.
+     * focused, so save what's valid, and reconnect whichever address changed.
      */
     override fun onCleared() {
         val f = _form.value ?: return
@@ -183,6 +226,14 @@ class SettingsViewModel(
         )
         if (target != saved.connection) save { it.setConnection(target) }
         if (target != applied) client.connect(target.host, target.port, target.password)
+
+        val obsTarget = ConnectionTarget(
+            host = target.host,
+            port = ConnectionValidation.parsePort(f.obsPort) ?: saved.obsPort,
+            password = f.obsPassword,
+        )
+        if (obsTarget != saved.obsConnection) save { it.setObsConnection(obsTarget.port, obsTarget.password) }
+        if (obsTarget != appliedObs) obs.connect(obsTarget.host, obsTarget.port, obsTarget.password)
     }
 
     // --- Helpers ---------------------------------------------------------------------
@@ -220,7 +271,7 @@ class SettingsViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as StreamDeckApp).container
-                SettingsViewModel(container.settings, container.streamerBot, container.appScope)
+                SettingsViewModel(container.settings, container.streamerBot, container.obs, container.appScope)
             }
         }
     }

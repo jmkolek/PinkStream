@@ -46,7 +46,7 @@ class StreamerBotClient(private val httpClient: OkHttpClient) {
     val state: StateFlow<ConnectionState> = _state.asStateFlow()
 
     private val _events = MutableSharedFlow<EventEnvelope>(extraBufferCapacity = 64)
-    /** Subscribed events (used from milestone 5). */
+    /** Events asked for with [subscribe]. */
     val events: SharedFlow<EventEnvelope> = _events.asSharedFlow()
 
     private data class Target(val host: String, val port: Int, val password: String)
@@ -105,6 +105,14 @@ class StreamerBotClient(private val httpClient: OkHttpClient) {
     /** Runs an action. Prefer [id]; [name] is the fallback. Throws [StreamerBotException]. */
     suspend fun doAction(id: String?, name: String?, args: Map<String, String> = emptyMap()) {
         request { requestId -> StreamerBotRequests.doAction(requestId, id, name, args) }
+    }
+
+    /**
+     * Asks for events, which then arrive on [events]. Subscriptions belong to one
+     * connection, so call this again after every reconnect. Throws [StreamerBotException].
+     */
+    suspend fun subscribe(events: Map<String, List<String>>) {
+        request { id -> StreamerBotRequests.subscribe(id, events) }
     }
 
     // --- Connection ---------------------------------------------------------------

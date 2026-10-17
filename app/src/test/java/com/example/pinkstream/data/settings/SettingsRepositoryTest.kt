@@ -39,7 +39,7 @@ class SettingsRepositoryTest {
     @Test
     fun freshInstallUsesTheDefaults() = runBlocking {
         val settings = SettingsRepository(openStore()).settings.first()
-        assertEquals(AppSettings("127.0.0.1", 8080, "", keepScreenOn = true, vibrate = true, ThemeMode.AUTO, 3), settings)
+        assertEquals(AppSettings("127.0.0.1", 8080, "", keepScreenOn = true, vibrate = true, ThemeMode.AUTO, 3, obsPort = 4455, obsPassword = ""), settings)
     }
 
     @Test
@@ -50,11 +50,12 @@ class SettingsRepositoryTest {
             setVibrate(false)
             setThemeMode(ThemeMode.NIGHT)
             setColumns(4)
+            setObsConnection(4460, "obs-secret")
         }
         scopes.removeAt(0).cancel()   // only one DataStore may have the file open
 
         val settings = SettingsRepository(openStore()).settings.first()
-        assertEquals(AppSettings("192.168.1.20", 8081, "secret", keepScreenOn = false, vibrate = false, ThemeMode.NIGHT, 4), settings)
+        assertEquals(AppSettings("192.168.1.20", 8081, "secret", keepScreenOn = false, vibrate = false, ThemeMode.NIGHT, 4, obsPort = 4460, obsPassword = "obs-secret"), settings)
     }
 
     @Test
@@ -64,6 +65,16 @@ class SettingsRepositoryTest {
         repository.setHost("10.0.2.2")
         repository.setPassword("pw")
         assertEquals(ConnectionTarget("10.0.2.2", 9000, "pw"), repository.settings.first().connection)
+    }
+
+    @Test
+    fun obsSharesTheHostButHasItsOwnPortAndPassword() = runBlocking {
+        val repository = SettingsRepository(openStore())
+        repository.setHost("192.168.1.20")
+        repository.setObsPort(4456)
+        repository.setObsPassword("obs-pw")
+        assertEquals(ConnectionTarget("192.168.1.20", 4456, "obs-pw"), repository.settings.first().obsConnection)
+        assertEquals(8080, repository.settings.first().port)
     }
 
     @Test

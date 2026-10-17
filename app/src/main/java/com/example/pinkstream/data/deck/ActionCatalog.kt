@@ -27,6 +27,10 @@ class ActionCatalog(
     /** null until the first successful GetActions. */
     val actions: StateFlow<List<ActionInfo>?> = _actions.asStateFlow()
 
+    private val _refreshing = MutableStateFlow(false)
+    /** True while a GetActions is on its way (the picker spins its refresh icon). */
+    val refreshing: StateFlow<Boolean> = _refreshing.asStateFlow()
+
     private var refreshJob: Job? = null
 
     init {
@@ -38,6 +42,7 @@ class ActionCatalog(
     fun refresh() {
         refreshJob?.cancel()
         refreshJob = scope.launch {
+            _refreshing.value = true
             try {
                 val list = client.getActions()
                 _actions.value = list
@@ -46,6 +51,9 @@ class ActionCatalog(
                 Log.w(TAG, "GetActions failed: ${e.message}")
             } catch (e: SerializationException) {
                 Log.w(TAG, "GetActions answer didn't parse", e)
+            } finally {
+                // A newer refresh may have replaced this one; only the newest clears the flag.
+                if (refreshJob == coroutineContext[Job]) _refreshing.value = false
             }
         }
     }

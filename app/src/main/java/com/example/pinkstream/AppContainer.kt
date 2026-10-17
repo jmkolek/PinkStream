@@ -7,6 +7,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.example.pinkstream.data.deck.ActionCatalog
 import com.example.pinkstream.data.deck.DeckRepository
 import com.example.pinkstream.data.live.LiveStateRepository
+import com.example.pinkstream.data.obs.ObsClient
 import com.example.pinkstream.data.settings.SettingsRepository
 import com.example.pinkstream.data.streamerbot.StreamerBotClient
 import kotlinx.coroutines.CoroutineScope
@@ -43,19 +44,23 @@ class AppContainer(val appContext: Context) {
 
     val streamerBot = StreamerBotClient(httpClient)
 
+    /** Read-only link straight to OBS, for the live scene and mute states. */
+    val obs = ObsClient(httpClient)
+
     val settings = SettingsRepository(appContext.settingsDataStore)
 
     val deck = DeckRepository(appContext.deckDataStore)
 
     val actions = ActionCatalog(streamerBot, deck, appScope)
 
-    val liveState = LiveStateRepository(appScope)
+    val liveState = LiveStateRepository(streamerBot, obs, appScope)
 
-    /** Called once at startup: connect to wherever Settings says the PC is. */
+    /** Called once at startup: connect to Streamer.bot and OBS wherever Settings says the PC is. */
     fun connectWithSavedSettings() {
         appScope.launch {
             val saved = settings.settings.first()
             streamerBot.connect(saved.host, saved.port, saved.password)
+            obs.connect(saved.host, saved.obsPort, saved.obsPassword)
         }
     }
 }

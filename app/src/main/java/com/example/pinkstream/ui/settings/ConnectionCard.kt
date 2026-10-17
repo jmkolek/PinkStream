@@ -42,11 +42,16 @@ import com.example.pinkstream.ui.theme.DeckShapes
 import com.example.pinkstream.ui.theme.DeckTheme
 import com.example.pinkstream.ui.theme.DeckType
 
-/** The raised card with the status row, PC address, port, password and Test connection. */
+/**
+ * The raised card: a status row each for Streamer.bot and OBS, then PC address,
+ * Streamer.bot port and password, OBS port and password, and Test connection.
+ * The OBS rows aren't in the mockup; they copy the Streamer.bot ones.
+ */
 @Composable
 fun ConnectionCard(
     form: ConnectionForm,
     status: ConnectionStatus,
+    obsStatus: ConnectionStatus,
     viewModel: SettingsViewModel,
 ) {
     val colors = DeckTheme.colors
@@ -60,6 +65,8 @@ fun ConnectionCard(
             .padding(18.dp),
     ) {
         StatusRow(status)
+        Spacer(Modifier.height(12.dp))
+        StatusRow(obsStatus)
         HorizontalDivider(Modifier.padding(vertical = 16.dp), thickness = 1.dp, color = colors.hairline)
 
         DeckTextField(
@@ -88,11 +95,34 @@ fun ConnectionCard(
                 label = "Password",
                 placeholder = "Optional",
                 onFocusLost = viewModel::onPasswordFocusLost,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                visualTransformation = if (form.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailing = { PasswordToggle(visible = form.passwordVisible, onToggle = viewModel::togglePasswordVisible) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Spacer(Modifier.height(14.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            DeckTextField(
+                value = form.obsPort,
+                onValueChange = viewModel::onObsPortChange,
+                label = "OBS port",
+                error = form.obsPortError,
+                onFocusLost = viewModel::onObsPortFocusLost,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                modifier = Modifier.width(104.dp),
+            )
+            DeckTextField(
+                value = form.obsPassword,
+                onValueChange = viewModel::onObsPasswordChange,
+                label = "OBS password",
+                placeholder = "Optional",
+                onFocusLost = viewModel::onObsPasswordFocusLost,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                 // Done closes the keyboard and leaves the field, which saves it.
                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                visualTransformation = if (form.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailing = { PasswordToggle(visible = form.passwordVisible, onToggle = viewModel::togglePasswordVisible) },
+                visualTransformation = if (form.obsPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailing = { PasswordToggle(visible = form.obsPasswordVisible, onToggle = viewModel::toggleObsPasswordVisible) },
                 modifier = Modifier.weight(1f),
             )
         }

@@ -12,13 +12,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.pinkstream.ui.theme.DeckTheme
 
 /**
- * 44 dp round button with a hairline border (Back, Edit layout, Settings).
+ * 44 dp round button with a hairline border (Back, Edit layout, Settings, Delete).
+ * [tint] defaults to ink; Delete uses primary.
  * Compose widens the touch area of small clickable elements to 48 dp by itself.
  */
 @Composable
@@ -27,6 +29,7 @@ fun CircleIconButton(
     contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    tint: Color = DeckTheme.colors.ink,
 ) {
     val colors = DeckTheme.colors
     Box(
@@ -38,6 +41,6 @@ fun CircleIconButton(
             .clickable(role = Role.Button, onClickLabel = contentDescription, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(painterResource(icon), contentDescription = contentDescription, tint = colors.ink, modifier = Modifier.size(20.dp))
+        Icon(painterResource(icon), contentDescription = contentDescription, tint = tint, modifier = Modifier.size(20.dp))
     }
 }

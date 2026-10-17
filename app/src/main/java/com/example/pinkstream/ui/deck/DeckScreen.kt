@@ -1,5 +1,6 @@
 package com.example.pinkstream.ui.deck
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,6 +54,7 @@ import kotlinx.coroutines.launch
 fun DeckScreen(
     onOpenSettings: () -> Unit,
     onOpenEdit: (buttonId: String) -> Unit,
+    onAddButton: (sectionId: String) -> Unit,
     viewModel: DeckViewModel = viewModel(factory = DeckViewModel.Factory),
 ) {
     val colors = DeckTheme.colors
@@ -67,10 +69,16 @@ fun DeckScreen(
             launch {
                 val result = snackbarHostState.showSnackbar(
                     message.text,
-                    actionLabel = if (message.offerSettings) "Settings" else null,
+                    actionLabel = message.action?.label,
                     duration = SnackbarDuration.Short,
                 )
-                if (result == SnackbarResult.ActionPerformed) onOpenSettings()
+                if (result == SnackbarResult.ActionPerformed) {
+                    when (message.action) {
+                        MessageAction.OPEN_SETTINGS -> onOpenSettings()
+                        MessageAction.UNDO_REMOVE -> viewModel.undoRemove()
+                        null -> Unit
+                    }
+                }
             }
         }
     }
@@ -84,6 +92,9 @@ fun DeckScreen(
         onDispose { view.keepScreenOn = false }
     }
 
+    // While editing the layout, the back gesture leaves edit mode first.
+    BackHandler(enabled = state?.editing == true) { viewModel.finishEditing() }
+
     Scaffold(
         containerColor = colors.background,
         snackbarHost = { DeckSnackbarHost(snackbarHostState) },
@@ -95,7 +106,7 @@ fun DeckScreen(
                 .padding(insets),
         ) {
             DeckHeader(loaded, viewModel, onOpenSettings)
-            DeckPages(loaded, viewModel, onOpenEdit)
+            DeckPages(loaded, viewModel, onOpenEdit, onAddButton)
         }
     }
 
@@ -125,7 +136,11 @@ private fun DeckHeader(state: DeckUiState, viewModel: DeckViewModel, onOpenSetti
         )
         Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CircleIconButton(R.drawable.ic_deck_pencil, "Edit layout", viewModel::onEditLayout)
+            if (state.editing) {
+                DonePill(onClick = viewModel::finishEditing)
+            } else {
+                CircleIconButton(R.drawable.ic_deck_pencil, "Edit layout", viewModel::startEditing)
+            }
             CircleIconButton(R.drawable.ic_deck_sliders, "Settings", onOpenSettings)
         }
     }
@@ -140,14 +155,44 @@ private fun ColumnScope.DeckPages(
     state: DeckUiState,
     viewModel: DeckViewModel,
     onOpenEdit: (String) -> Unit,
+    onAddButton: (String) -> Unit,
 ) {
     val pages = state.pages
     // The pager remembers the current page itself, also across rotation.
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
     val openEdit by rememberUpdatedState(onOpenEdit)
+    val addButton by rememberUpdatedState(onAddButton)
     val actions = remember(viewModel) {
-        TileActions(viewModel.tileEvents, onRun = viewModel::onTap, onEdit = { openEdit(it.id) })
+        TileActions(
+            viewModel.tileEvents,
+            onRun = viewModel::onTap,
+            onEdit = { openEdit(it.id) },
+            onRemove = viewModel::removeButton,
+            onAdd = { addButton(it) },
+        )
+    }
+
+    // Page dialogs, by page id. rememberSaveable keeps them open across rotation.
+    var renamingPageId by rememberSaveable { mutableStateOf<String?>(null) }
+    var renamingNewPage by rememberSaveable { mutableStateOf(false) }
+    var deletingPageId by rememberSaveable { mutableStateOf<String?>(null) }
+    var scrollToPageId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // A page added with "+": go to it once it's in the layout, and ask for its name.
+    LaunchedEffect(viewModel) {
+        viewModel.addedPages.collect { id ->
+            scrollToPageId = id
+            renamingPageId = id
+            renamingNewPage = true
+        }
+    }
+    LaunchedEffect(pages, scrollToPageId) {
+        val index = pages.indexOfFirst { it.id == scrollToPageId }
+        if (index >= 0) {
+            pagerState.animateScrollToPage(index)
+            scrollToPageId = null
+        }
     }
 
     PageTabs(
@@ -155,6 +200,19 @@ private fun ColumnScope.DeckPages(
         // targetPage moves the dot as soon as a swipe settles on its way, not after.
         selectedIndex = pagerState.targetPage,
         onSelect = { scope.launch { pagerState.animateScrollToPage(it) } },
+        onLongPress = if (state.editing) {
+            { index ->
+                renamingPageId = pages[index].id
+                renamingNewPage = false
+            }
+        } else {
+            null
+        },
+        trailing = if (state.editing) {
+            { CircleIconButton(R.drawable.ic_deck_plus, "Add a page", viewModel::addPage) }
+        } else {
+            null
+        },
         modifier = Modifier
             .horizontalScroll(rememberScrollState())
             .padding(start = 20.dp, top = 14.dp, end = 20.dp),
@@ -168,13 +226,13 @@ private fun ColumnScope.DeckPages(
         verticalAlignment = Alignment.Top,
         key = { pages[it].id },
     ) { index ->
-        DeckPageContent(pages[index], state, actions, onEditLayout = viewModel::onEditLayout)
+        DeckPageContent(pages[index], state, actions, onEditLayout = viewModel::startEditing)
     }
 
-    if (pages.getOrNull(pagerState.currentPage)?.isEmpty() == false) {
+    if (state.editing || pages.getOrNull(pagerState.currentPage)?.isEmpty() == false) {
         Box(Modifier.fillMaxWidth().padding(start = 20.dp, top = 8.dp, end = 20.dp, bottom = 24.dp)) {
             Text(
-                "Hold any tile to edit it",
+                if (state.editing) "Tap a tile to edit it · hold a page name to rename it" else "Hold any tile to edit it",
                 style = DeckType.caption,
                 color = DeckTheme.colors.inkSecondary,
                 textAlign = TextAlign.Center,
@@ -183,5 +241,36 @@ private fun ColumnScope.DeckPages(
         }
     } else {
         Spacer(Modifier.height(24.dp))
+    }
+
+    pages.firstOrNull { it.id == renamingPageId }?.let { page ->
+        RenamePageDialog(
+            currentName = page.name,
+            startEmpty = renamingNewPage,
+            onSave = { name ->
+                viewModel.renamePage(page.id, name)
+                renamingPageId = null
+            },
+            onDelete = if (pages.size > 1) {
+                {
+                    renamingPageId = null
+                    deletingPageId = page.id
+                }
+            } else {
+                null
+            },
+            onDismiss = { renamingPageId = null },
+        )
+    }
+    pages.firstOrNull { it.id == deletingPageId }?.let { page ->
+        DeletePageDialog(
+            name = page.name,
+            buttonCount = page.sections.sumOf { it.buttons.size },
+            onDelete = {
+                viewModel.deletePage(page.id)
+                deletingPageId = null
+            },
+            onDismiss = { deletingPageId = null },
+        )
     }
 }

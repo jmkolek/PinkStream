@@ -2,7 +2,6 @@ package com.example.pinkstream.data.deck
 
 import com.example.pinkstream.ui.icons.DeckIcon
 import com.example.pinkstream.ui.theme.TileColor
-import java.util.UUID
 
 /**
  * The layout a fresh install starts with (docs/PLAN.md → Default layout).
@@ -46,13 +45,11 @@ object DefaultLayout {
         ),
     )
 
-    private fun newId() = UUID.randomUUID().toString()
-
     private fun page(name: String, vararg sections: DeckSection) =
-        DeckPage(id = newId(), name = name, sections = sections.toList())
+        DeckPage(id = newDeckId(), name = name, sections = sections.toList())
 
     private fun section(title: String?, style: SectionStyle, vararg buttons: DeckButton) =
-        DeckSection(id = newId(), title = title, style = style, buttons = buttons.toList())
+        DeckSection(id = newDeckId(), title = title, style = style, buttons = buttons.toList())
 
     private fun button(
         label: String,
@@ -62,7 +59,7 @@ object DefaultLayout {
         onAirScene: String? = null,
         stateInput: String? = null,
     ) = DeckButton(
-        id = newId(),
+        id = newDeckId(),
         label = label,
         icon = icon,
         color = color,

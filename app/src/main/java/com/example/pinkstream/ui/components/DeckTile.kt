@@ -17,13 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -78,7 +72,7 @@ fun DeckTile(
             .clip(DeckShapes.tile)
             .background(background)
             .then(if (look == TileLook.TOGGLE_OFF) Modifier.border(1.dp, colors.toggleOffBorder, DeckShapes.tile) else Modifier)
-            .then(if (look == TileLook.NO_ACTION) Modifier.dashedBorder(dashColor) else Modifier)
+            .then(if (look == TileLook.NO_ACTION) Modifier.dashedBorder(dashColor, 22.dp) else Modifier)
             .padding(start = 13.dp, top = 13.dp, end = 13.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -120,17 +114,4 @@ private fun TilePill(label: String, background: Color, content: Color) {
     ) {
         Text(label, style = DeckType.pill, color = content)
     }
-}
-
-/** 1 dp dashed outline following the tile's rounded corners. */
-private fun Modifier.dashedBorder(color: Color): Modifier = drawWithContent {
-    drawContent()
-    val stroke = 1.dp.toPx()
-    drawRoundRect(
-        color = color,
-        topLeft = Offset(stroke / 2, stroke / 2),
-        size = Size(size.width - stroke, size.height - stroke),
-        cornerRadius = CornerRadius(22.dp.toPx()),
-        style = Stroke(width = stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 4.dp.toPx()))),
-    )
 }

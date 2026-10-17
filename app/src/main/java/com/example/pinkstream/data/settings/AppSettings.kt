@@ -2,7 +2,7 @@ package com.example.pinkstream.data.settings
 
 import com.example.pinkstream.ui.theme.ThemeMode
 
-/** Where to find Streamer.bot. */
+/** Where to find Streamer.bot (or OBS). */
 data class ConnectionTarget(val host: String, val port: Int, val password: String)
 
 /** Everything on the Settings screen. The defaults are what a fresh install starts with. */
@@ -14,9 +14,16 @@ data class AppSettings(
     val vibrate: Boolean = true,
     val themeMode: ThemeMode = ThemeMode.AUTO,
     val columns: Int = DEFAULT_COLUMNS,
+    /** OBS runs on the same PC as Streamer.bot, so it shares [host]. */
+    val obsPort: Int = ConnectionDefaults.OBS_PORT,
+    val obsPassword: String = "",
 ) {
     val connection: ConnectionTarget
         get() = ConnectionTarget(host, port, password)
+
+    /** Where to find OBS's own WebSocket server (read-only live state). */
+    val obsConnection: ConnectionTarget
+        get() = ConnectionTarget(host, obsPort, obsPassword)
 
     companion object {
         const val DEFAULT_COLUMNS = 3

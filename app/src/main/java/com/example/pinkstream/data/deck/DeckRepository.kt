@@ -39,6 +39,17 @@ class DeckRepository(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[LAYOUT] = json.encodeToString(DeckLayout.serializer(), layout) }
     }
 
+    /**
+     * Changes the saved layout in one step: reads the latest saved version, applies
+     * [change] and writes the result, so two quick edits can't undo each other.
+     */
+    suspend fun update(change: (DeckLayout) -> DeckLayout) {
+        dataStore.edit { prefs ->
+            val current = prefs[LAYOUT]?.let(::decode) ?: return@edit
+            prefs[LAYOUT] = json.encodeToString(DeckLayout.serializer(), change(current))
+        }
+    }
+
     /** After GetActions: store the ids of actions that were only known by name. */
     suspend fun fillActionIds(actions: List<ActionInfo>) {
         // Read and write inside one edit() so a save from the editor can't slip in between.

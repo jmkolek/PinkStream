@@ -35,6 +35,14 @@ class StreamerBotRequestsTest {
     }
 
     @Test
+    fun subscribeJson() {
+        assertEquals(
+            """{"request":"Subscribe","id":"req-6","events":{"Obs":["SceneChanged","Event"]}}""",
+            StreamerBotRequests.subscribe("req-6", mapOf("Obs" to listOf("SceneChanged", "Event"))),
+        )
+    }
+
+    @Test
     fun authenticateJson() {
         assertEquals(
             """{"request":"Authenticate","id":"req-5","authentication":"abc="}""",

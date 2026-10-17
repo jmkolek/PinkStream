@@ -1,7 +1,8 @@
 package com.example.pinkstream.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,13 +26,19 @@ import androidx.compose.ui.unit.dp
 import com.example.pinkstream.ui.theme.DeckTheme
 import com.example.pinkstream.ui.theme.DeckType
 
-/** Serif page names; the active one is italic with a rose dot under it. */
+/**
+ * Serif page names; the active one is italic with a rose dot under it.
+ * [onLongPress] (edit layout mode) renames a page; [trailing] sits after the last tab.
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PageTabs(
     names: List<String>,
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    onLongPress: ((Int) -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     val colors = DeckTheme.colors
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.Top) {
@@ -40,11 +47,13 @@ fun PageTabs(
             Column(
                 Modifier
                     .semantics { selected = active }
-                    .clickable(
+                    .combinedClickable(
                         // No ripple: the italic and the dot already show the change.
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                         role = Role.Tab,
+                        onLongClickLabel = if (onLongPress != null) "Rename" else null,
+                        onLongClick = onLongPress?.let { { it(index) } },
                     ) { onSelect(index) },
             ) {
                 Text(
@@ -61,5 +70,6 @@ fun PageTabs(
                 )
             }
         }
+        trailing?.invoke()
     }
 }

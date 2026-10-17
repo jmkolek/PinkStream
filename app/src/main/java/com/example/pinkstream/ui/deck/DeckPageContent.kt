@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -37,8 +38,12 @@ class TileActions(
     val tileEvents: Flow<TileEvent>,
     /** Tap on a tile whose action exists. */
     val onRun: (DeckButton) -> Unit,
-    /** Long-press, or a tap on a tile with no action. */
+    /** Long-press, a tap on a tile with no action, or any tap in edit layout mode. */
     val onEdit: (DeckButton) -> Unit,
+    /** The remove badge (edit layout mode). */
+    val onRemove: (DeckButton) -> Unit,
+    /** "+ Add" at the end of a section, by section id. */
+    val onAdd: (String) -> Unit,
 )
 
 /** True when none of the page's sections has a button. */
@@ -47,7 +52,7 @@ fun DeckPage.isEmpty(): Boolean = sections.all { it.buttons.isEmpty() }
 /** One page of the deck: its sections top to bottom, scrolling if they don't fit. */
 @Composable
 fun DeckPageContent(page: DeckPage, state: DeckUiState, actions: TileActions, onEditLayout: () -> Unit) {
-    if (page.isEmpty()) {
+    if (page.isEmpty() && !state.editing) {
         EmptyPage(onEditLayout)
         return
     }
@@ -58,19 +63,55 @@ fun DeckPageContent(page: DeckPage, state: DeckUiState, actions: TileActions, on
             // Inside the scroll, so shadows and the success ring at the edges aren't cut off.
             .padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
     ) {
-        // Sections without buttons are left out until editing (milestone 4) needs them.
-        page.sections.filter { it.buttons.isNotEmpty() }.forEachIndexed { index, section ->
+        // Sections without buttons only show while editing, so they can get some.
+        page.sections.filter { state.editing || it.buttons.isNotEmpty() }.forEachIndexed { index, section ->
             // 16 dp under the page tabs for the first section, as in the mockup; 22 dp between sections.
             val top: Dp = if (index == 0) 16.dp else 22.dp
             if (section.title != null) SectionLabel(section.title, top = top) else Spacer(Modifier.height(top))
             when (section.style) {
                 SectionStyle.HERO -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    section.buttons.forEach { HeroButton(it, state, actions) }
+                    section.buttons.forEach { EditableTile(it, state, actions) { HeroButton(it, state, actions) } }
+                    // The hero holds one button; offer "+ Add" only when it's empty.
+                    if (state.editing && section.buttons.isEmpty()) {
+                        AddTile(onClick = { actions.onAdd(section.id) }, height = 82.dp, cornerRadius = 26.dp)
+                    }
                 }
-                SectionStyle.GRID -> TileGrid(section.buttons, columns = state.columns) { GridButton(it, state, actions) }
+                SectionStyle.GRID -> {
+                    // null stands for the "+ Add" tile after the last button.
+                    val items: List<DeckButton?> = if (state.editing) section.buttons + null else section.buttons
+                    TileGrid(items, columns = state.columns) { button ->
+                        if (button == null) {
+                            AddTile(onClick = { actions.onAdd(section.id) })
+                        } else {
+                            EditableTile(button, state, actions) { GridButton(button, state, actions) }
+                        }
+                    }
+                }
             }
         }
     }
+}
+
+/** In edit layout mode, puts the remove badge on the tile's top-right corner. */
+@Composable
+private fun EditableTile(button: DeckButton, state: DeckUiState, actions: TileActions, tile: @Composable () -> Unit) {
+    Box {
+        tile()
+        if (state.editing) {
+            RemoveBadge(
+                label = button.label,
+                onClick = { actions.onRemove(button) },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 6.dp, y = (-6).dp),
+            )
+        }
+    }
+}
+
+/** Tap: run the action. Without an action, or while editing the layout: open the editor. */
+private fun onTileTap(button: DeckButton, hasAction: Boolean, state: DeckUiState, actions: TileActions) {
+    if (hasAction && !state.editing) actions.onRun(button) else actions.onEdit(button)
 }
 
 @Composable
@@ -80,7 +121,7 @@ private fun GridButton(button: DeckButton, state: DeckUiState, actions: TileActi
         cornerRadius = 22.dp,
         vibrate = state.vibrate,
         feedback = rememberFeedback(actions.tileEvents, button.id),
-        onClick = { if (hasAction) actions.onRun(button) else actions.onEdit(button) },
+        onClick = { onTileTap(button, hasAction, state, actions) },
         onLongClick = { actions.onEdit(button) },
     ) {
         DeckTile(
@@ -88,7 +129,8 @@ private fun GridButton(button: DeckButton, state: DeckUiState, actions: TileActi
             icon = button.icon,
             color = button.color,
             look = button.tileLook(state.live, hasAction),
-            offline = !state.connected,
+            // Nothing runs while editing, so there's no reason to fade.
+            offline = !state.connected && !state.editing,
         )
     }
 }
@@ -100,14 +142,14 @@ private fun HeroButton(button: DeckButton, state: DeckUiState, actions: TileActi
         cornerRadius = 26.dp,
         vibrate = state.vibrate,
         feedback = rememberFeedback(actions.tileEvents, button.id),
-        onClick = { if (hasAction) actions.onRun(button) else actions.onEdit(button) },
+        onClick = { onTileTap(button, hasAction, state, actions) },
         onLongClick = { actions.onEdit(button) },
     ) {
         MicHero(
             label = button.label,
             icon = button.icon,
             state = button.micState(state.live),
-            offline = !state.connected,
+            offline = !state.connected && !state.editing,
             subtitle = if (hasAction) null else "No action",
         )
     }
