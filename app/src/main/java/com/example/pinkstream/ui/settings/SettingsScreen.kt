@@ -2,6 +2,7 @@ package com.example.pinkstream.ui.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -13,9 +14,13 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pinkstream.R
 import com.example.pinkstream.data.settings.AppSettings
 import com.example.pinkstream.ui.components.CircleIconButton
+import com.example.pinkstream.ui.components.DeckSnackbarHost
 import com.example.pinkstream.ui.components.SectionLabel
 import com.example.pinkstream.ui.components.SegmentedControl
 import com.example.pinkstream.ui.components.SettingsDivider
@@ -39,20 +45,46 @@ import com.example.pinkstream.ui.theme.TileColor
 fun SettingsScreen(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
+    backupViewModel: BackupViewModel = viewModel(factory = BackupViewModel.Factory),
 ) {
     val colors = DeckTheme.colors
     val form by viewModel.form.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val status by viewModel.status.collectAsStateWithLifecycle()
     val obsStatus by viewModel.obsStatus.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(backupViewModel) {
+        backupViewModel.messages.collect { snackbarHostState.showSnackbar(it) }
+    }
 
-    Column(
+    Box(
         Modifier
             .fillMaxSize()
             .background(colors.background)
-            // safeDrawing = status bar, navigation bar and the keyboard while it's open,
-            // so the focused field can scroll above the keyboard.
-            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .windowInsetsPadding(WindowInsets.safeDrawing),
+    ) {
+        SettingsContent(form, settings, status, obsStatus, viewModel, backupViewModel, onBack)
+        DeckSnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter).padding(16.dp))
+    }
+}
+
+@Composable
+private fun SettingsContent(
+    form: ConnectionForm?,
+    settings: AppSettings?,
+    status: ConnectionStatus,
+    obsStatus: ConnectionStatus,
+    viewModel: SettingsViewModel,
+    backupViewModel: BackupViewModel,
+    onBack: () -> Unit,
+) {
+    val colors = DeckTheme.colors
+
+    // The Box around this pads for safeDrawing = status bar, navigation bar and the
+    // keyboard while it's open, so the focused field can scroll above the keyboard.
+    Column(
+        Modifier
+            .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(start = 20.dp, top = 22.dp, end = 20.dp, bottom = 24.dp),
     ) {
@@ -69,6 +101,9 @@ fun SettingsScreen(
 
             SectionLabel("Deck", top = 22.dp, bottom = 10.dp)
             DeckCard(loadedSettings, viewModel)
+
+            SectionLabel("Backup", top = 22.dp, bottom = 10.dp)
+            BackupCard(backupViewModel)
         }
     }
 }

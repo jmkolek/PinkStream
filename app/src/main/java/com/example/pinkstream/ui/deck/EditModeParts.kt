@@ -27,20 +27,25 @@ import com.example.pinkstream.ui.theme.DeckShapes
 import com.example.pinkstream.ui.theme.DeckTheme
 import com.example.pinkstream.ui.theme.DeckType
 
-/** The 22 dp ink circle with a minus at a tile's top-right corner in edit layout mode. */
+/**
+ * The 22 dp ink circle with a minus at a tile's top-right corner in edit layout mode.
+ * The circle sits in the middle of a 48 dp touch area. It's drawn on top of the tile,
+ * so Compose's automatic touch-area widening (which only catches near-misses) can't help.
+ */
 @Composable
 fun RemoveBadge(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = DeckTheme.colors
     Box(
         modifier
-            .size(22.dp)
+            .size(48.dp)
             .clip(CircleShape)
-            .background(colors.ink)
             .clickable(role = Role.Button, onClickLabel = "Remove $label", onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        // surface = white by day, dark plum at night: always the opposite of ink.
-        Icon(painterResource(R.drawable.ic_deck_minus), contentDescription = "Remove $label", tint = colors.surface, modifier = Modifier.size(14.dp))
+        Box(Modifier.size(22.dp).background(colors.ink, CircleShape), contentAlignment = Alignment.Center) {
+            // surface = white by day, dark plum at night: always the opposite of ink.
+            Icon(painterResource(R.drawable.ic_deck_minus), contentDescription = "Remove $label", tint = colors.surface, modifier = Modifier.size(14.dp))
+        }
     }
 }
 

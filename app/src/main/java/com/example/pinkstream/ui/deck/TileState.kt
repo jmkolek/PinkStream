@@ -44,3 +44,22 @@ fun failedSinceConnected(state: ConnectionState, before: Boolean): Boolean = whe
     is ConnectionState.Failed -> true
     ConnectionState.Connecting, ConnectionState.Authenticating -> before
 }
+
+/** The state words TalkBack adds after a tile's label; null when there's nothing to add. */
+fun TileLook.spoken(): String? = when (this) {
+    TileLook.ON_AIR -> "on air"
+    TileLook.TOGGLE_ON -> "on"
+    TileLook.TOGGLE_OFF -> "off"
+    TileLook.NO_ACTION -> "no action"
+    TileLook.NORMAL -> null
+}
+
+fun MicState.spoken(): String? = when (this) {
+    MicState.LIVE -> "live"
+    MicState.MUTED -> "muted"
+    MicState.UNKNOWN -> null
+}
+
+/** What TalkBack says for a tile: its label, then its state, e.g. "Microphone, live". */
+fun spokenTile(label: String, vararg states: String?, offline: Boolean = false): String =
+    (listOf(label) + states.filterNotNull() + listOfNotNull("not connected".takeIf { offline })).joinToString(", ")

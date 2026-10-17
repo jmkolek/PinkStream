@@ -10,8 +10,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.pinkstream.ui.theme.DeckShapes
@@ -35,8 +37,12 @@ fun ConnectionChip(status: ChipStatus, modifier: Modifier = Modifier) {
             .background(colors.surface, DeckShapes.pill)
             .border(1.dp, colors.hairline, DeckShapes.pill)
             .padding(start = 12.dp, end = 14.dp)
-            // TalkBack reads one sentence instead of the dot and two texts.
-            .clearAndSetSemantics { contentDescription = "$label to Streamer.bot" },
+            // TalkBack reads one sentence instead of the dot and two texts, and
+            // (live region) announces it again whenever the connection changes.
+            .clearAndSetSemantics {
+                contentDescription = "$label to Streamer.bot"
+                liveRegion = LiveRegionMode.Polite
+            },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

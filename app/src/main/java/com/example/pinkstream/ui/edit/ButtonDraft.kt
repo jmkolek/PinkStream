@@ -3,11 +3,14 @@ package com.example.pinkstream.ui.edit
 import com.example.pinkstream.data.deck.DeckButton
 import com.example.pinkstream.ui.icons.DeckIcon
 import com.example.pinkstream.ui.theme.TileColor
+import kotlinx.serialization.Serializable
 
 /**
  * The Edit button form while it's being changed. The switches and their text fields
  * are kept separately, so turning a switch off and on again doesn't lose the name.
+ * Serializable so the unsaved form survives Android stopping the app in the background.
  */
+@Serializable
 data class ButtonDraft(
     val label: String,
     val icon: DeckIcon,

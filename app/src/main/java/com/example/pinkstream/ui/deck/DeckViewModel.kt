@@ -1,8 +1,10 @@
 package com.example.pinkstream.ui.deck
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.pinkstream.StreamDeckApp
@@ -70,6 +72,7 @@ enum class TileFeedback { SUCCESS, ERROR }
 data class TileEvent(val buttonId: String, val feedback: TileFeedback)
 
 class DeckViewModel(
+    private val savedState: SavedStateHandle,
     private val deck: DeckRepository,
     settings: SettingsRepository,
     private val client: StreamerBotClient,
@@ -86,7 +89,8 @@ class DeckViewModel(
             ConnectionView(chipStatus(state, failed), state is ConnectionState.Connected, failed)
         }
 
-    private val editing = MutableStateFlow(false)
+    // In the SavedStateHandle so edit layout mode survives Android stopping the app in the background.
+    private val editing: StateFlow<Boolean> = savedState.getStateFlow(EDITING_KEY, false)
 
     private val baseState: Flow<DeckUiState> =
         combine(deck.layout, settings.settings, connection, actions.actions, liveState.state) { layout, s, conn, list, live ->
@@ -144,11 +148,11 @@ class DeckViewModel(
     // --- Edit layout mode. Every change is saved straight away; Done just leaves the mode.
 
     fun startEditing() {
-        editing.value = true
+        savedState[EDITING_KEY] = true
     }
 
     fun finishEditing() {
-        editing.value = false
+        savedState[EDITING_KEY] = false
     }
 
     fun removeButton(button: DeckButton) {
@@ -204,12 +208,13 @@ class DeckViewModel(
 
     companion object {
         const val NEW_PAGE_NAME = "New page"
+        private const val EDITING_KEY = "editing"
 
         /** Tells Compose's viewModel() how to build this ViewModel with the shared objects. */
         val Factory = viewModelFactory {
             initializer {
                 val c = (this[APPLICATION_KEY] as StreamDeckApp).container
-                DeckViewModel(c.deck, c.settings, c.streamerBot, c.actions, c.liveState)
+                DeckViewModel(createSavedStateHandle(), c.deck, c.settings, c.streamerBot, c.actions, c.liveState)
             }
         }
     }

@@ -98,7 +98,7 @@ fun DeckTextField(
                         .height(if (edit) 52.dp else 48.dp)
                         .background(if (edit) colors.surface else colors.fieldBg, shape)
                         .border(borderWidth, borderColor ?: idleBorder, shape)
-                        .padding(start = if (edit) 16.dp else 14.dp, end = if (trailing != null) 4.dp else if (edit) 16.dp else 14.dp),
+                        .padding(start = if (edit) 16.dp else 14.dp, end = if (trailing != null) 0.dp else if (edit) 16.dp else 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(Modifier.weight(1f)) {

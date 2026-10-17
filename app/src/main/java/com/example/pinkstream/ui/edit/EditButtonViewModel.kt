@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 /** The Edit button form. */
 data class EditButtonUiState(
@@ -52,7 +53,7 @@ data class EditButtonUiState(
  * (route `add/{sectionId}`). Nothing is saved until Save changes; back discards.
  */
 class EditButtonViewModel(
-    savedState: SavedStateHandle,
+    private val savedState: SavedStateHandle,
     private val deck: DeckRepository,
     private val catalog: ActionCatalog,
     client: StreamerBotClient,
@@ -86,13 +87,16 @@ class EditButtonViewModel(
     }
 
     private fun load(layout: DeckLayout) {
+        // After Android stopped the app in the background, carry on with the unsaved form.
+        val restored = restoredDraft()
         val existing = buttonId?.let { layout.locate(it) }
         if (existing != null) {
+            val draft = restored ?: existing.button.toDraft()
             _state.value = EditButtonUiState(
                 isNew = false,
                 isHero = existing.section.style == SectionStyle.HERO,
-                draft = existing.button.toDraft(),
-                iconRow = iconRow(existing.button.icon),
+                draft = draft,
+                iconRow = iconRow(draft.icon),
             )
             return
         }
@@ -103,7 +107,7 @@ class EditButtonViewModel(
             return
         }
         // A new tile takes the colour of its neighbours, so a section stays one colour.
-        val draft = newButtonDraft(section.buttons.lastOrNull()?.color ?: TileColor.ROSE)
+        val draft = restored ?: newButtonDraft(section.buttons.lastOrNull()?.color ?: TileColor.ROSE)
         _state.value = EditButtonUiState(
             isNew = true,
             isHero = section.style == SectionStyle.HERO,
@@ -180,9 +184,25 @@ class EditButtonViewModel(
             val draft = change(state.draft)
             state.copy(draft = draft, errors = if (state.errors.ok) state.errors else draft.validate())
         }
+        _state.value?.draft?.let { savedState[DRAFT_KEY] = Json.encodeToString(ButtonDraft.serializer(), it) }
+    }
+
+    private fun restoredDraft(): ButtonDraft? {
+        val text = savedState.get<String>(DRAFT_KEY) ?: return null
+        return try {
+            Json.decodeFromString(ButtonDraft.serializer(), text)
+        } catch (e: IllegalArgumentException) {   // from an older app version: start fresh
+            null
+        }
     }
 
     companion object {
+        /**
+         * The SavedStateHandle survives the process being killed in the background (it's
+         * stored in the activity's saved instance state), unlike the ViewModel itself.
+         */
+        private const val DRAFT_KEY = "draft"
+
         /** Tells Compose's viewModel() how to build this ViewModel, with the route's arguments. */
         val Factory = viewModelFactory {
             initializer {

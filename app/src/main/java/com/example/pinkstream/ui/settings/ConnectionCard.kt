@@ -175,7 +175,7 @@ private fun PasswordToggle(visible: Boolean, onToggle: () -> Unit) {
     val label = if (visible) "Hide password" else "Show password"
     Box(
         Modifier
-            .size(40.dp)
+            .size(48.dp)
             .clip(CircleShape)
             .clickable(role = Role.Button, onClickLabel = label, onClick = onToggle),
         contentAlignment = Alignment.Center,

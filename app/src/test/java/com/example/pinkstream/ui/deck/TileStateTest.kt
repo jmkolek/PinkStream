@@ -58,4 +58,14 @@ class TileStateTest {
         assertEquals(ChipStatus.OFFLINE, step(ConnectionState.Disconnected))          // app in background
         assertEquals(ChipStatus.CONNECTING, step(ConnectionState.Connecting))         // back in front
     }
+
+    @Test
+    fun talkBackHearsLabelThenState() {
+        assertEquals("Microphone, live", spokenTile("Microphone", MicState.LIVE.spoken()))
+        assertEquals("Microphone, muted", spokenTile("Microphone", MicState.MUTED.spoken()))
+        assertEquals("Microphone", spokenTile("Microphone", MicState.UNKNOWN.spoken()))
+        assertEquals("Gaming, on air", spokenTile("Gaming", TileLook.ON_AIR.spoken()))
+        assertEquals("Music, off, not connected", spokenTile("Music", TileLook.TOGGLE_OFF.spoken(), offline = true))
+        assertEquals("Microphone, no action", spokenTile("Microphone", MicState.UNKNOWN.spoken(), "no action"))
+    }
 }

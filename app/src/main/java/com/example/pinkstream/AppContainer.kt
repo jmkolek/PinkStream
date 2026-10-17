@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.pinkstream.data.deck.ActionCatalog
 import com.example.pinkstream.data.deck.DeckRepository
+import com.example.pinkstream.data.deck.LayoutFiles
 import com.example.pinkstream.data.live.LiveStateRepository
 import com.example.pinkstream.data.obs.ObsClient
 import com.example.pinkstream.data.settings.SettingsRepository
@@ -52,6 +53,9 @@ class AppContainer(val appContext: Context) {
     val deck = DeckRepository(appContext.deckDataStore)
 
     val actions = ActionCatalog(streamerBot, deck, appScope)
+
+    /** Layout backup files (Settings → Backup). */
+    val layoutFiles = LayoutFiles(appContext.contentResolver)
 
     val liveState = LiveStateRepository(streamerBot, obs, appScope)
 

@@ -2,4 +2,8 @@
 <resources>
     <!-- Same as DESIGN.md background (day); values-night has the night one -->
     <color name="window_background">#FFFCF5F7</color>
+    <!-- App icon: the rose tile (DESIGN.md tileRose / tileRoseIcon, day). Day only, on
+         purpose: the launcher icon shouldn't change with the app's theme. -->
+    <color name="launcher_background">#FFF9DDE6</color>
+    <color name="launcher_foreground">#FFB23A68</color>
 </resources>

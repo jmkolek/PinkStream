@@ -28,6 +28,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.pinkstream.ui.theme.DeckTheme
@@ -39,11 +42,15 @@ import kotlinx.coroutines.launch
  * plays a fading rose ring on success and a sideways shake on error
  * (DESIGN.md → States not in the mockups, Motion and haptics).
  * [cornerRadius] is the tile's own, so the ring follows its shape.
+ * TalkBack reads [description] ("Microphone, live") instead of the tile's texts, and
+ * [clickLabel] says what a double tap does ("Run" or "Edit").
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PressableTile(
     cornerRadius: Dp,
+    description: String,
+    clickLabel: String,
     vibrate: Boolean,
     feedback: Flow<TileFeedback>,
     onClick: () -> Unit,
@@ -125,17 +132,20 @@ fun PressableTile(
                     )
                 }
             }
+            .semantics { contentDescription = description }
             // No ripple: the press scale is the feedback, and a ripple wouldn't follow the corners.
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = null,
                 role = Role.Button,
+                onClickLabel = clickLabel,
                 onLongClickLabel = "Edit",
                 onLongClick = onLongClick,
                 onClick = onClick,
             ),
     ) {
-        content()
+        // The description above already says everything the texts inside would.
+        Box(Modifier.clearAndSetSemantics {}) { content() }
     }
 }
 

@@ -1,5 +1,7 @@
 package com.example.pinkstream.ui.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -46,21 +49,40 @@ fun DeckTile(
     val colors = DeckTheme.colors
     val palette = colors.tile(color)
 
-    val background = when (look) {
-        TileLook.ON_AIR -> colors.primary
-        TileLook.TOGGLE_OFF -> colors.toggleOff
-        else -> palette.container
-    }
-    val iconTint = when (look) {
-        TileLook.ON_AIR -> colors.onPrimary
-        TileLook.TOGGLE_OFF -> colors.toggleOffIcon
-        else -> palette.icon
-    }
-    val labelColor = when (look) {
-        TileLook.ON_AIR -> colors.onPrimary
-        TileLook.TOGGLE_OFF -> colors.ink
-        else -> palette.label
-    }
+    // State changes crossfade over 200 ms (DESIGN.md → Motion) instead of snapping.
+    val background by animateColorAsState(
+        when (look) {
+            TileLook.ON_AIR -> colors.primary
+            TileLook.TOGGLE_OFF -> colors.toggleOff
+            else -> palette.container
+        },
+        StateChange, label = "tileBackground",
+    )
+    val iconTint by animateColorAsState(
+        when (look) {
+            TileLook.ON_AIR -> colors.onPrimary
+            TileLook.TOGGLE_OFF -> colors.toggleOffIcon
+            else -> palette.icon
+        },
+        StateChange, label = "tileIcon",
+    )
+    val labelColor by animateColorAsState(
+        when (look) {
+            TileLook.ON_AIR -> colors.onPrimary
+            TileLook.TOGGLE_OFF -> colors.ink
+            else -> palette.label
+        },
+        StateChange, label = "tileLabel",
+    )
+    // Transparent = none; animating to and from it fades the border and shadow in and out.
+    val border by animateColorAsState(
+        if (look == TileLook.TOGGLE_OFF) colors.toggleOffBorder else Color.Transparent,
+        StateChange, label = "tileBorder",
+    )
+    val shadow by animateColorAsState(
+        if (look == TileLook.ON_AIR) colors.onAirShadow else Color.Transparent,
+        StateChange, label = "tileShadow",
+    )
     val dashColor = colors.inkSecondary.copy(alpha = 0.4f)
 
     Column(
@@ -68,10 +90,10 @@ fun DeckTile(
             .fillMaxWidth()
             .height(94.dp)
             .alpha(if (offline) 0.45f else 1f)
-            .softShadow(if (look == TileLook.ON_AIR) colors.onAirShadow else Color.Transparent, 10.dp, DeckShapes.tile)
+            .softShadow(shadow, 10.dp, DeckShapes.tile)
             .clip(DeckShapes.tile)
             .background(background)
-            .then(if (look == TileLook.TOGGLE_OFF) Modifier.border(1.dp, colors.toggleOffBorder, DeckShapes.tile) else Modifier)
+            .then(if (border.alpha > 0f) Modifier.border(1.dp, border, DeckShapes.tile) else Modifier)
             .then(if (look == TileLook.NO_ACTION) Modifier.dashedBorder(dashColor, 22.dp) else Modifier)
             .padding(start = 13.dp, top = 13.dp, end = 13.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.SpaceBetween,
@@ -102,6 +124,9 @@ fun DeckTile(
         }
     }
 }
+
+/** Tiles and the hero change state with this (DESIGN.md: 200 ms tweens). */
+internal val StateChange = tween<Color>(durationMillis = 200)
 
 @Composable
 private fun TilePill(label: String, background: Color, content: Color) {

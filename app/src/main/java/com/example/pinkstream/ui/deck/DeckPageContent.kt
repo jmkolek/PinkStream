@@ -101,9 +101,10 @@ private fun EditableTile(button: DeckButton, state: DeckUiState, actions: TileAc
             RemoveBadge(
                 label = button.label,
                 onClick = { actions.onRemove(button) },
+                // The 22 dp circle pokes 6 dp out of the corner; its 48 dp touch area is centred on it.
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset(x = 6.dp, y = (-6).dp),
+                    .offset(x = 19.dp, y = (-19).dp),
             )
         }
     }
@@ -111,14 +112,21 @@ private fun EditableTile(button: DeckButton, state: DeckUiState, actions: TileAc
 
 /** Tap: run the action. Without an action, or while editing the layout: open the editor. */
 private fun onTileTap(button: DeckButton, hasAction: Boolean, state: DeckUiState, actions: TileActions) {
-    if (hasAction && !state.editing) actions.onRun(button) else actions.onEdit(button)
+    if (tapRuns(hasAction, state)) actions.onRun(button) else actions.onEdit(button)
 }
+
+private fun tapRuns(hasAction: Boolean, state: DeckUiState) = hasAction && !state.editing
 
 @Composable
 private fun GridButton(button: DeckButton, state: DeckUiState, actions: TileActions) {
     val hasAction = button.hasAction(state.actions)
+    val look = button.tileLook(state.live, hasAction)
+    // Nothing runs while editing, so there's no reason to fade.
+    val offline = !state.connected && !state.editing
     PressableTile(
         cornerRadius = 22.dp,
+        description = spokenTile(button.label, look.spoken(), offline = offline),
+        clickLabel = if (tapRuns(hasAction, state)) "Run" else "Edit",
         vibrate = state.vibrate,
         feedback = rememberFeedback(actions.tileEvents, button.id),
         onClick = { onTileTap(button, hasAction, state, actions) },
@@ -128,9 +136,8 @@ private fun GridButton(button: DeckButton, state: DeckUiState, actions: TileActi
             label = button.label,
             icon = button.icon,
             color = button.color,
-            look = button.tileLook(state.live, hasAction),
-            // Nothing runs while editing, so there's no reason to fade.
-            offline = !state.connected && !state.editing,
+            look = look,
+            offline = offline,
         )
     }
 }
@@ -138,8 +145,12 @@ private fun GridButton(button: DeckButton, state: DeckUiState, actions: TileActi
 @Composable
 private fun HeroButton(button: DeckButton, state: DeckUiState, actions: TileActions) {
     val hasAction = button.hasAction(state.actions)
+    val micState = button.micState(state.live)
+    val offline = !state.connected && !state.editing
     PressableTile(
         cornerRadius = 26.dp,
+        description = spokenTile(button.label, micState.spoken(), "no action".takeUnless { hasAction }, offline = offline),
+        clickLabel = if (tapRuns(hasAction, state)) "Run" else "Edit",
         vibrate = state.vibrate,
         feedback = rememberFeedback(actions.tileEvents, button.id),
         onClick = { onTileTap(button, hasAction, state, actions) },
@@ -148,8 +159,8 @@ private fun HeroButton(button: DeckButton, state: DeckUiState, actions: TileActi
         MicHero(
             label = button.label,
             icon = button.icon,
-            state = button.micState(state.live),
-            offline = !state.connected && !state.editing,
+            state = micState,
+            offline = offline,
             subtitle = if (hasAction) null else "No action",
         )
     }

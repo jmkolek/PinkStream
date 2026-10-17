@@ -1,5 +1,6 @@
 package com.example.pinkstream.ui.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -22,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.pinkstream.ui.icons.DeckIcon
+import com.example.pinkstream.ui.theme.HeroPalette
 import com.example.pinkstream.ui.theme.DeckShapes
 import com.example.pinkstream.ui.theme.DeckTheme
 import com.example.pinkstream.ui.theme.DeckType
@@ -43,7 +46,7 @@ fun MicHero(
     subtitle: String? = null,
 ) {
     val colors = DeckTheme.colors
-    val palette = if (state == MicState.MUTED) colors.heroMuted else colors.heroLive
+    val palette = animatePalette(if (state == MicState.MUTED) colors.heroMuted else colors.heroLive)
     val secondLine = subtitle ?: when (state) {
         MicState.LIVE -> "Tap to mute"
         MicState.MUTED -> "Chat can't hear you"
@@ -96,4 +99,19 @@ fun MicHero(
             }
         }
     }
+}
+
+/** Crossfades every hero colour over 200 ms when Live and Muted swap. */
+@Composable
+private fun animatePalette(target: HeroPalette): HeroPalette {
+    val container by animateColorAsState(target.container, StateChange, label = "heroContainer")
+    val border by animateColorAsState(target.border, StateChange, label = "heroBorder")
+    val shadow by animateColorAsState(target.shadow, StateChange, label = "heroShadow")
+    val title by animateColorAsState(target.title, StateChange, label = "heroTitle")
+    val subtitle by animateColorAsState(target.subtitle, StateChange, label = "heroSubtitle")
+    val iconBox by animateColorAsState(target.iconBox, StateChange, label = "heroIconBox")
+    val icon by animateColorAsState(target.icon, StateChange, label = "heroIcon")
+    val pill by animateColorAsState(target.pill, StateChange, label = "heroPill")
+    val pillText by animateColorAsState(target.pillText, StateChange, label = "heroPillText")
+    return HeroPalette(container, border, shadow, title, subtitle, iconBox, icon, pill, pillText)
 }
