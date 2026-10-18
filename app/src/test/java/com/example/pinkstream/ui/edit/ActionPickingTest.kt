@@ -1,13 +1,13 @@
 package com.example.pinkstream.ui.edit
 
-import com.example.pinkstream.data.deck.DeckButton
+import com.example.pinkstream.data.deck.DeckKey
 import com.example.pinkstream.data.deck.DeckLayout
 import com.example.pinkstream.data.deck.DeckPage
-import com.example.pinkstream.data.deck.DeckSection
-import com.example.pinkstream.data.deck.SectionStyle
 import com.example.pinkstream.data.streamerbot.ActionInfo
 import com.example.pinkstream.ui.icons.DeckIcon
-import com.example.pinkstream.ui.theme.TileColor
+import com.example.pinkstream.ui.icons.DeckKeyArt
+import com.example.pinkstream.ui.icons.PageIcon
+import com.example.pinkstream.ui.theme.IconTint
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -25,11 +25,11 @@ class ActionPickingTest {
 
     @Test
     fun guessesIconAndColourFromTheName() {
-        assertEquals(ActionStyle(DeckIcon.MONITOR, TileColor.ROSE), guessActionStyle("Deck - Scene Gaming"))
-        assertEquals(ActionStyle(DeckIcon.VOLUME, TileColor.PEACH), guessActionStyle("Deck - Mic Toggle"))
-        assertEquals(ActionStyle(DeckIcon.VOLUME, TileColor.PEACH), guessActionStyle("Deck - Music Toggle"))
-        assertEquals(ActionStyle(DeckIcon.SMILE, TileColor.LILAC), guessActionStyle("Deck - VTS Happy"))
-        assertEquals(ActionStyle(DeckIcon.BOLT, TileColor.MIST), guessActionStyle("Deck - Applause"))
+        assertEquals(ActionStyle(DeckIcon.MONITOR, IconTint.ROSE), guessActionStyle("Deck - Scene Gaming"))
+        assertEquals(ActionStyle(DeckIcon.VOLUME, IconTint.PEACH), guessActionStyle("Deck - Mic Toggle"))
+        assertEquals(ActionStyle(DeckIcon.VOLUME, IconTint.PEACH), guessActionStyle("Deck - Music Toggle"))
+        assertEquals(ActionStyle(DeckIcon.SMILE, IconTint.LILAC), guessActionStyle("Deck - VTS Happy"))
+        assertEquals(ActionStyle(DeckIcon.BOLT, IconTint.MIST), guessActionStyle("Deck - Applause"))
     }
 
     @Test
@@ -55,13 +55,22 @@ class ActionPickingTest {
 
     @Test
     fun usageLineNamesTheButton() {
-        val brb = DeckButton("b2", "BRB", DeckIcon.COFFEE, TileColor.ROSE, actionId = "6")
-        val layout = DeckLayout(listOf(DeckPage("p", "Main", listOf(DeckSection("s", null, SectionStyle.GRID, listOf(brb))))))
+        val brb = DeckKey("b2", "BRB", DeckKeyArt.BRB, actionId = "6")
+        val layout = DeckLayout(listOf(DeckPage("p", "Main", PageIcon.GRID, listOf(brb))))
 
-        assertEquals("On this button", actionUsage(layout, actions[0], isThisButtonsAction = true, thisButtonId = "b1"))
-        assertEquals("On the BRB button", actionUsage(layout, actions[5], isThisButtonsAction = false, thisButtonId = "b1"))
-        assertEquals("Not on a button yet", actionUsage(layout, actions[4], isThisButtonsAction = false, thisButtonId = "b1"))
-        // Editing BRB itself and the form now points elsewhere: BRB's old action isn't "on" another button.
-        assertEquals("Not on a button yet", actionUsage(layout, actions[5], isThisButtonsAction = false, thisButtonId = "b2"))
+        assertEquals("On this button", actionUsage(layout, actions[0], isThisKeysAction = true, thisKeyId = "b1"))
+        assertEquals("On the BRB button", actionUsage(layout, actions[5], isThisKeysAction = false, thisKeyId = "b1"))
+        assertEquals("Not on a button yet", actionUsage(layout, actions[4], isThisKeysAction = false, thisKeyId = "b1"))
+        // Editing BRB itself and the form now points elsewhere: BRB's old action isn't "on" another key.
+        assertEquals("Not on a button yet", actionUsage(layout, actions[5], isThisKeysAction = false, thisKeyId = "b2"))
+    }
+
+    @Test
+    fun keyNameDropsTheDeckPrefixAndCategoryWord() {
+        assertEquals("Gaming", keyNameFor("Deck - Scene Gaming"))
+        assertEquals("Happy", keyNameFor("Deck - VTS Happy"))
+        assertEquals("Mic Toggle", keyNameFor("Deck – Mic Toggle"))
+        assertEquals("Raid message", keyNameFor("Raid message"))
+        assertEquals("Deck -", keyNameFor("Deck -"))        // nothing left: keep the action's name
     }
 }

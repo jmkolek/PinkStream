@@ -53,15 +53,10 @@ private fun sans(size: Float, lineHeight: Float, weight: FontWeight) = TextStyle
  * Section labels: write them in sentence case and pass `text.uppercase()`.
  */
 object DeckType {
-    val pageTab = serif(38f, 38f)                  // active tab: copy(fontStyle = FontStyle.Italic)
     val screenTitle = serif(40f, 40f)
     val sheetTitle = serif(32f, 34f)
     val sectionLabel = sans(11.5f, 14f, FontWeight.SemiBold).copy(letterSpacing = 0.14.em)
-    val heroTitle = sans(17f, 20f, FontWeight.SemiBold)
-    val heroSubtitle = sans(13f, 16f, FontWeight.Medium)
-    val tileLabel = sans(14.5f, 17.4f, FontWeight.SemiBold)
-    val tileStatus = sans(11.5f, 14f, FontWeight.SemiBold).copy(letterSpacing = 0.04.em)
-    val pill = sans(11f, 13f, FontWeight.Bold).copy(letterSpacing = 0.04.em)
+    val sheetSubtitle = sans(13f, 16f, FontWeight.Medium)
     val pillLarge = sans(13f, 16f, FontWeight.SemiBold)
     val rowTitle = sans(15f, 19f, FontWeight.SemiBold)
     val rowSubtitle = sans(12.5f, 16f, FontWeight.Medium)
@@ -72,6 +67,7 @@ object DeckType {
     val buttonSmall = sans(15f, 19f, FontWeight.SemiBold)
     val caption = sans(12.5f, 17f, FontWeight.Medium)
     val helper = sans(12f, 17f, FontWeight.Medium)
+    val dockLabel = sans(12f, 15f, FontWeight.Medium)   // selected tab: copy(fontWeight = FontWeight.SemiBold)
 }
 
 // Material 3 components (dialogs, snackbars, text fields) read MaterialTheme.typography.

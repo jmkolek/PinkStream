@@ -4,6 +4,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.pinkstream.data.streamerbot.ActionInfo
+import com.example.pinkstream.ui.icons.DeckKeyArt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -55,11 +56,26 @@ class DeckRepositoryTest {
     @Test
     fun fillActionIdsIsSaved() = runBlocking {
         val repository = DeckRepository(openStore())
-        repository.layout.first()
+        val main = repository.layout.first().pages.first()
+        val key = DeckKey(newDeckId(), "Gaming", DeckKeyArt.GAMING, actionName = "Deck - Scene Gaming")
+        repository.update { it.insertKey(main.id, 0, key) }
         repository.fillActionIds(listOf(ActionInfo(id = "g-1", name = "Deck - Scene Gaming")))
 
-        val gaming = restart().layout.first().pages.first().sections.flatMap { it.buttons }.single { it.label == "Gaming" }
+        val gaming = restart().layout.first().pages.first().keys.single { it.label == "Gaming" }
         assertEquals("g-1", gaming.actionId)
+    }
+
+    @Test
+    fun anOldLayoutIsMovedOverOnceAndTheOriginalKept() = runBlocking {
+        val store = openStore()
+        store.edit { it[stringPreferencesKey("layout")] = LayoutMigrationTest.OLD_LAYOUT }
+        val layout = DeckRepository(store).layout.first()
+        assertEquals(listOf("Main", "Model"), layout.pages.map { it.name })
+        assertEquals(listOf("mic", "gaming", "happy"), layout.pages.first().keys.map { it.id })
+        assertEquals(LayoutMigrationTest.OLD_LAYOUT, store.data.first()[stringPreferencesKey("layout_v1")])
+
+        // Saved in the new shape: a restart reads the same layout without migrating again.
+        assertEquals(layout, restart().layout.first())
     }
 
     @Test

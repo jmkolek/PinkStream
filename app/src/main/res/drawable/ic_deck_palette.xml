@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stream deck icon "palette" (page icon): 24 x 24, 1.8 stroke, round caps. Tint it where it's used. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M12 3.5a8.5 8.5 0 1 0 0 17c1.2 0 1.8-0.8 1.8-1.7 0-1.2-1-1.6-1-2.6 0-0.9 0.7-1.6 1.6-1.6h2.1a4 4 0 0 0 4-4c0-4-3.8-7.1-8.5-7.1z"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M8 11.5h0.01M10 7.5h0.01M14.5 7.5h0.01"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="2.6"
+        android:strokeLineCap="round" />
+</vector>

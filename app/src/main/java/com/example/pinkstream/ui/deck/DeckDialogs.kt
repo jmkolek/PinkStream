@@ -17,22 +17,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import com.example.pinkstream.data.deck.DeckButton
+import com.example.pinkstream.data.deck.DeckKey
 import com.example.pinkstream.ui.theme.DeckType
 
-/** "Run Ad break?" for buttons with "Ask before running" on (DESIGN.md → Confirm dialog). */
+/** "Run Ad break?" for keys with "Ask before running" on (DESIGN.md → Confirm dialog). */
 @Composable
-fun ConfirmRunDialog(button: DeckButton, onRun: () -> Unit, onCancel: () -> Unit) {
+fun ConfirmRunDialog(key: DeckKey, onRun: () -> Unit, onCancel: () -> Unit) {
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text("Run ${button.label}?") },
-        text = { Text("This button asks before it runs.") },
+        title = { Text("Run ${key.label}?") },
+        text = { Text("This key asks before it runs.") },
         confirmButton = { Button(onClick = onRun) { Text("Run") } },
         dismissButton = { TextButton(onClick = onCancel) { Text("Cancel") } },
     )
 }
 
-/** Debug builds only: pick fake OBS data to check the on-air, Live/Muted and On/Off looks. */
+/** Debug builds only: pick fake OBS data to check the on-air and on/off looks. */
 @Composable
 fun LivePreviewDialog(selected: LivePreview, onSelect: (LivePreview) -> Unit, onDismiss: () -> Unit) {
     AlertDialog(

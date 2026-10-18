@@ -4,7 +4,6 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.example.pinkstream.ui.theme.ThemeMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -39,7 +38,7 @@ class SettingsRepositoryTest {
     @Test
     fun freshInstallUsesTheDefaults() = runBlocking {
         val settings = SettingsRepository(openStore()).settings.first()
-        assertEquals(AppSettings("127.0.0.1", 8080, "", keepScreenOn = true, vibrate = true, ThemeMode.AUTO, 3, obsPort = 4455, obsPassword = ""), settings)
+        assertEquals(AppSettings("127.0.0.1", 8080, "", keepScreenOn = true, vibrate = true, columns = 3, obsPort = 4455, obsPassword = ""), settings)
     }
 
     @Test
@@ -48,14 +47,13 @@ class SettingsRepositoryTest {
             setConnection(ConnectionTarget("192.168.1.20", 8081, "secret"))
             setKeepScreenOn(false)
             setVibrate(false)
-            setThemeMode(ThemeMode.NIGHT)
             setColumns(4)
             setObsConnection(4460, "obs-secret")
         }
         scopes.removeAt(0).cancel()   // only one DataStore may have the file open
 
         val settings = SettingsRepository(openStore()).settings.first()
-        assertEquals(AppSettings("192.168.1.20", 8081, "secret", keepScreenOn = false, vibrate = false, ThemeMode.NIGHT, 4, obsPort = 4460, obsPassword = "obs-secret"), settings)
+        assertEquals(AppSettings("192.168.1.20", 8081, "secret", keepScreenOn = false, vibrate = false, columns = 4, obsPort = 4460, obsPassword = "obs-secret"), settings)
     }
 
     @Test

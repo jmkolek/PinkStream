@@ -23,19 +23,19 @@ import androidx.compose.ui.unit.dp
 import com.example.pinkstream.ui.theme.DeckShapes
 import com.example.pinkstream.ui.theme.DeckTheme
 import com.example.pinkstream.ui.theme.DeckType
-import com.example.pinkstream.ui.theme.TileColor
+import com.example.pinkstream.ui.theme.IconTint
 
 /** One 60 dp row of a settings card: coloured icon tile, title, then [control] on the right. */
 @Composable
 fun SettingsRow(
     @DrawableRes icon: Int,
-    iconColor: TileColor,
+    iconColor: IconTint,
     title: String,
     modifier: Modifier = Modifier,
     control: @Composable () -> Unit,
 ) {
     val colors = DeckTheme.colors
-    val palette = colors.tile(iconColor)
+    val palette = colors.iconBox(iconColor)
     Row(
         modifier
             .fillMaxWidth()
@@ -63,7 +63,7 @@ fun SettingsRow(
 @Composable
 fun SettingsSwitchRow(
     @DrawableRes icon: Int,
-    iconColor: TileColor,
+    iconColor: IconTint,
     title: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,

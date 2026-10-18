@@ -37,8 +37,7 @@ import com.example.pinkstream.ui.components.SettingsSwitchRow
 import com.example.pinkstream.ui.theme.DeckShapes
 import com.example.pinkstream.ui.theme.DeckTheme
 import com.example.pinkstream.ui.theme.DeckType
-import com.example.pinkstream.ui.theme.ThemeMode
-import com.example.pinkstream.ui.theme.TileColor
+import com.example.pinkstream.ui.theme.IconTint
 
 /** Settings (mockup 05-settings): the connections to Streamer.bot and OBS, and how the deck behaves. */
 @Composable
@@ -120,7 +119,7 @@ private fun DeckCard(settings: AppSettings, viewModel: SettingsViewModel) {
     ) {
         SettingsSwitchRow(
             icon = R.drawable.ic_deck_sun,
-            iconColor = TileColor.PEACH,
+            iconColor = IconTint.PEACH,
             title = "Keep screen on",
             checked = settings.keepScreenOn,
             onCheckedChange = viewModel::setKeepScreenOn,
@@ -128,22 +127,13 @@ private fun DeckCard(settings: AppSettings, viewModel: SettingsViewModel) {
         SettingsDivider()
         SettingsSwitchRow(
             icon = R.drawable.ic_deck_vibrate,
-            iconColor = TileColor.LILAC,
+            iconColor = IconTint.LILAC,
             title = "Vibrate on press",
             checked = settings.vibrate,
             onCheckedChange = viewModel::setVibrate,
         )
         SettingsDivider()
-        SettingsRow(icon = R.drawable.ic_deck_moon, iconColor = TileColor.ROSE, title = "Theme") {
-            SegmentedControl(
-                options = ThemeMode.entries,
-                selected = settings.themeMode,
-                onSelect = viewModel::setThemeMode,
-                label = { it.label },
-            )
-        }
-        SettingsDivider()
-        SettingsRow(icon = R.drawable.ic_deck_grid, iconColor = TileColor.MIST, title = "Columns") {
+        SettingsRow(icon = R.drawable.ic_deck_grid, iconColor = IconTint.MIST, title = "Columns") {
             SegmentedControl(
                 options = AppSettings.COLUMN_CHOICES,
                 selected = settings.columns,
@@ -155,10 +145,3 @@ private fun DeckCard(settings: AppSettings, viewModel: SettingsViewModel) {
         }
     }
 }
-
-private val ThemeMode.label: String
-    get() = when (this) {
-        ThemeMode.DAY -> "Day"
-        ThemeMode.NIGHT -> "Night"
-        ThemeMode.AUTO -> "Auto"
-    }

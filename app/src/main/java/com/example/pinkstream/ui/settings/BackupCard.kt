@@ -27,7 +27,7 @@ import com.example.pinkstream.ui.components.SettingsDivider
 import com.example.pinkstream.ui.components.SettingsRow
 import com.example.pinkstream.ui.theme.DeckShapes
 import com.example.pinkstream.ui.theme.DeckTheme
-import com.example.pinkstream.ui.theme.TileColor
+import com.example.pinkstream.ui.theme.IconTint
 
 /**
  * Settings → Backup: Export layout and Import layout rows. Not in the mockups; it
@@ -55,14 +55,14 @@ fun BackupCard(viewModel: BackupViewModel) {
     ) {
         SettingsRow(
             icon = R.drawable.ic_deck_upload,
-            iconColor = TileColor.LILAC,
+            iconColor = IconTint.LILAC,
             title = "Export layout",
             modifier = Modifier.clickable(role = Role.Button) { exportPicker.launch(viewModel.exportFileName()) },
         ) { Chevron() }
         SettingsDivider()
         SettingsRow(
             icon = R.drawable.ic_deck_download,
-            iconColor = TileColor.PEACH,
+            iconColor = IconTint.PEACH,
             title = "Import layout",
             // Some file managers label .json files as plain text or "any file".
             modifier = Modifier.clickable(role = Role.Button) {
@@ -89,14 +89,14 @@ private fun Chevron() {
 @Composable
 private fun ConfirmImportDialog(layout: DeckLayout, onImport: () -> Unit, onCancel: () -> Unit) {
     val pages = layout.pages.size
-    val buttons = layout.pages.sumOf { page -> page.sections.sumOf { it.buttons.size } }
+    val keys = layout.pages.sumOf { it.keys.size }
     AlertDialog(
         onDismissRequest = onCancel,
         title = { Text("Replace your layout?") },
         text = {
             Text(
-                "The file has $pages ${if (pages == 1) "page" else "pages"} and $buttons " +
-                    "${if (buttons == 1) "button" else "buttons"}. They replace everything on the deck now.",
+                "The file has $pages ${if (pages == 1) "page" else "pages"} and $keys " +
+                    "${if (keys == 1) "key" else "keys"}. They replace everything on the deck now.",
             )
         },
         confirmButton = { Button(onClick = onImport) { Text("Replace") } },

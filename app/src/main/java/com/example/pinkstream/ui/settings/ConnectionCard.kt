@@ -145,8 +145,8 @@ private fun StatusRow(status: ConnectionStatus) {
     val (tileColor, iconColor, icon) = when (status.kind) {
         StatusKind.CONNECTED -> Triple(colors.successContainer, colors.onSuccessContainer, R.drawable.ic_deck_check)
         StatusKind.PROBLEM -> Triple(colors.errorContainer, colors.onErrorContainer, R.drawable.ic_deck_close)
-        StatusKind.WORKING -> Triple(colors.tileMist.container, colors.tileMist.icon, R.drawable.ic_deck_refresh)
-        StatusKind.IDLE -> Triple(colors.tileMist.container, colors.tileMist.icon, R.drawable.ic_deck_minus)
+        StatusKind.WORKING -> Triple(colors.boxMist.container, colors.boxMist.icon, R.drawable.ic_deck_refresh)
+        StatusKind.IDLE -> Triple(colors.boxMist.container, colors.boxMist.icon, R.drawable.ic_deck_minus)
     }
     Row(
         // One TalkBack item, announced again whenever the status changes.

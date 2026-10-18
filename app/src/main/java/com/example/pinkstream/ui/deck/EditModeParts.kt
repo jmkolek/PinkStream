@@ -1,16 +1,15 @@
 package com.example.pinkstream.ui.deck
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,52 +18,77 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.pinkstream.R
-import com.example.pinkstream.ui.components.dashedBorder
+import com.example.pinkstream.ui.components.EmptySlotImage
 import com.example.pinkstream.ui.theme.DeckShapes
 import com.example.pinkstream.ui.theme.DeckTheme
 import com.example.pinkstream.ui.theme.DeckType
 
 /**
- * The 22 dp ink circle with a minus at a tile's top-right corner in edit layout mode.
- * The circle sits in the middle of a 48 dp touch area. It's drawn on top of the tile,
- * so Compose's automatic touch-area widening (which only catches near-misses) can't help.
+ * The 24 dp ink circle with a minus at a key's top-right corner in edit layout mode
+ * (mockup 02: its centre sits 8 dp in from the key's corner). The circle sits in the
+ * middle of a 48 dp touch area, drawn on top of the key. Put it in a Box with the key
+ * and align it TopEnd.
  */
 @Composable
 fun RemoveBadge(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val colors = DeckTheme.colors
     Box(
         modifier
+            .offset(x = 16.dp, y = (-16).dp)
             .size(48.dp)
             .clip(CircleShape)
             .clickable(role = Role.Button, onClickLabel = "Remove $label", onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Box(Modifier.size(22.dp).background(colors.ink, CircleShape), contentAlignment = Alignment.Center) {
-            // surface = white by day, dark plum at night: always the opposite of ink.
-            Icon(painterResource(R.drawable.ic_deck_minus), contentDescription = "Remove $label", tint = colors.surface, modifier = Modifier.size(14.dp))
+        InkBadge {
+            Icon(painterResource(R.drawable.ic_deck_minus), contentDescription = "Remove $label", tint = DeckTheme.colors.surface, modifier = Modifier.size(14.dp))
         }
     }
 }
 
-/** The dashed "+ Add" tile at the end of a section in edit layout mode. */
+/**
+ * The "!" in the same corner when a key's action isn't in Streamer.bot anymore.
+ * Keys have no text, so this replaces the old "No action" label. It's only a sign:
+ * tapping the key opens the editor, and TalkBack hears "no action" from the key.
+ */
 @Composable
-fun AddTile(onClick: () -> Unit, modifier: Modifier = Modifier, height: Dp = 94.dp, cornerRadius: Dp = 22.dp) {
+fun MissingActionBadge(modifier: Modifier = Modifier) {
+    Box(modifier.offset(x = 4.dp, y = (-4).dp).clearAndSetSemantics {}) {
+        InkBadge {
+            Text("!", style = DeckType.buttonSmall.copy(fontWeight = FontWeight.Bold, fontSize = 13.sp), color = DeckTheme.colors.surface)
+        }
+    }
+}
+
+/** 24 dp ink circle with a 2 dp ring in the background colour, so it stands off the key. */
+@Composable
+private fun InkBadge(content: @Composable () -> Unit) {
     val colors = DeckTheme.colors
-    Row(
+    Box(
+        Modifier
+            .size(24.dp)
+            .background(colors.ink, CircleShape)
+            .border(2.dp, colors.background, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) { content() }
+}
+
+/** A dashed "+" slot after a page's keys in edit layout mode. Tapping it adds a key. */
+@Composable
+fun EmptySlot(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Box(
         modifier
-            .fillMaxWidth()
-            .height(height)
-            .clip(RoundedCornerShape(cornerRadius))
-            .dashedBorder(colors.inkSecondary.copy(alpha = 0.4f), cornerRadius)
-            .clickable(role = Role.Button, onClickLabel = "Add a button", onClick = onClick),
-        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
+            .clip(DeckShapes.dockIcon)
+            .clickable(role = Role.Button, onClickLabel = "Add a key", onClick = onClick)
+            .semantics { contentDescription = "Empty slot" },
     ) {
-        Icon(painterResource(R.drawable.ic_deck_plus), contentDescription = null, tint = colors.inkSecondary, modifier = Modifier.size(20.dp))
-        Text("Add", style = DeckType.tileLabel, color = colors.inkSecondary)
+        EmptySlotImage(Modifier.fillMaxSize())
     }
 }
 
@@ -78,7 +102,7 @@ fun DonePill(onClick: () -> Unit) {
             .clip(DeckShapes.pill)
             .background(colors.primary)
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 22.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text("Done", style = DeckType.buttonSmall, color = colors.onPrimary)

@@ -14,7 +14,6 @@ import com.example.pinkstream.data.settings.SettingsRepository
 import com.example.pinkstream.data.streamerbot.ConnectionState
 import com.example.pinkstream.data.streamerbot.StreamerBotClient
 import com.example.pinkstream.data.streamerbot.StreamerBotException
-import com.example.pinkstream.ui.theme.ThemeMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -207,7 +206,6 @@ class SettingsViewModel(
 
     fun setKeepScreenOn(on: Boolean) = save { it.setKeepScreenOn(on) }
     fun setVibrate(on: Boolean) = save { it.setVibrate(on) }
-    fun setThemeMode(mode: ThemeMode) = save { it.setThemeMode(mode) }
     fun setColumns(columns: Int) = save { it.setColumns(columns) }
 
     // --- Leaving the screen ----------------------------------------------------------

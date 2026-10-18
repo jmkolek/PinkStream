@@ -7,7 +7,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.example.pinkstream.ui.theme.ThemeMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -32,7 +31,6 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     suspend fun setPassword(password: String) = set(PASSWORD, password)
     suspend fun setKeepScreenOn(on: Boolean) = set(KEEP_SCREEN_ON, on)
     suspend fun setVibrate(on: Boolean) = set(VIBRATE, on)
-    suspend fun setThemeMode(mode: ThemeMode) = set(THEME_MODE, mode.name)
     suspend fun setObsPort(port: Int) = set(OBS_PORT, port)
     suspend fun setObsPassword(password: String) = set(OBS_PASSWORD, password)
 
@@ -70,7 +68,6 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
             password = this[PASSWORD] ?: defaults.password,
             keepScreenOn = this[KEEP_SCREEN_ON] ?: defaults.keepScreenOn,
             vibrate = this[VIBRATE] ?: defaults.vibrate,
-            themeMode = ThemeMode.entries.firstOrNull { it.name == this[THEME_MODE] } ?: defaults.themeMode,
             columns = this[COLUMNS]?.takeIf { it in AppSettings.COLUMN_CHOICES } ?: defaults.columns,
             obsPort = this[OBS_PORT]?.takeIf { it in 1..65535 } ?: defaults.obsPort,
             obsPassword = this[OBS_PASSWORD] ?: defaults.obsPassword,
@@ -83,7 +80,6 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val PASSWORD = stringPreferencesKey("password")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
         val VIBRATE = booleanPreferencesKey("vibrate")
-        val THEME_MODE = stringPreferencesKey("theme_mode")
         val COLUMNS = intPreferencesKey("columns")
         val OBS_PORT = intPreferencesKey("obs_port")
         val OBS_PASSWORD = stringPreferencesKey("obs_password")

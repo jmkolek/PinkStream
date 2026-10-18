@@ -86,7 +86,7 @@ fun SearchField(
                             .clickable(role = Role.Button, onClickLabel = "Clear search") { onValueChange("") },
                         contentAlignment = Alignment.Center,
                     ) {
-                        Box(Modifier.size(28.dp).background(colors.tileMist.container, CircleShape), contentAlignment = Alignment.Center) {
+                        Box(Modifier.size(28.dp).background(colors.boxMist.container, CircleShape), contentAlignment = Alignment.Center) {
                             Icon(painterResource(R.drawable.ic_deck_close), contentDescription = "Clear search", tint = colors.inkSecondary, modifier = Modifier.size(14.dp))
                         }
                     }

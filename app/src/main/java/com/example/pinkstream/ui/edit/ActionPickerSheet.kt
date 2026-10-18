@@ -52,6 +52,7 @@ import com.example.pinkstream.ui.components.DeckChip
 import com.example.pinkstream.ui.components.PrimaryButton
 import com.example.pinkstream.ui.components.SearchField
 import com.example.pinkstream.ui.components.SectionLabel
+import com.example.pinkstream.ui.components.TonalButton
 import com.example.pinkstream.ui.theme.DeckShapes
 import com.example.pinkstream.ui.theme.DeckTheme
 import com.example.pinkstream.ui.theme.DeckType
@@ -63,19 +64,30 @@ class PickerData(
     val refreshing: Boolean,
     val connected: Boolean,
     val layout: DeckLayout?,
-    /** The button being edited (null while it's new) and the action its form has now. */
-    val buttonId: String?,
-    val draft: ButtonDraft,
+    /** The key being edited (null while it's new or not made yet). */
+    val keyId: String?,
+    /** The action the key's form has now, if any. */
+    val currentActionId: String?,
+    val currentActionName: String?,
 )
 
-/** "Choose an action" (mockup 04-choose-action). Search, group chips, one choice, "Use this action". */
+/**
+ * "Choose an action" (mockup 04-choose-action). Search, group chips, one choice, "Use this action".
+ * [onOpenSettings] adds a Settings button when the list couldn't be loaded (not connected yet).
+ */
 @Composable
-fun ActionPickerSheet(data: PickerData, onRefresh: () -> Unit, onUse: (ActionInfo) -> Unit, onDismiss: () -> Unit) {
+fun ActionPickerSheet(
+    data: PickerData,
+    onRefresh: () -> Unit,
+    onUse: (ActionInfo) -> Unit,
+    onDismiss: () -> Unit,
+    onOpenSettings: (() -> Unit)? = null,
+) {
     val colors = DeckTheme.colors
     val actions = data.actions.orEmpty()
-    // The draft's action counts as "this button's", matched by id or (with no id yet) by name.
+    // The form's action counts as "this key's", matched by id or (with no id yet) by name.
     fun isDraftAction(action: ActionInfo) =
-        if (data.draft.actionId != null) data.draft.actionId == action.id else data.draft.actionName == action.name
+        if (data.currentActionId != null) data.currentActionId == action.id else data.currentActionName == action.name
 
     var query by rememberSaveable { mutableStateOf("") }
     var group by rememberSaveable { mutableStateOf(defaultGroup(actions)) }
@@ -91,7 +103,7 @@ fun ActionPickerSheet(data: PickerData, onRefresh: () -> Unit, onUse: (ActionInf
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("Choose an action", style = DeckType.sheetTitle, color = colors.ink)
-                    Text(pickerSubtitle(data), style = DeckType.heroSubtitle, color = colors.inkSecondary)
+                    Text(pickerSubtitle(data), style = DeckType.sheetSubtitle, color = colors.inkSecondary)
                 }
                 RefreshButton(spinning = data.refreshing, onClick = onRefresh)
             }
@@ -134,7 +146,7 @@ fun ActionPickerSheet(data: PickerData, onRefresh: () -> Unit, onUse: (ActionInf
                                 action = action,
                                 query = query,
                                 selected = action.id == selectedId,
-                                usage = data.layout?.let { actionUsage(it, action, isDraftAction(action), data.buttonId) } ?: "",
+                                usage = data.layout?.let { actionUsage(it, action, isDraftAction(action), data.keyId) } ?: "",
                                 onClick = { selectedId = action.id },
                             )
                         }
@@ -142,7 +154,7 @@ fun ActionPickerSheet(data: PickerData, onRefresh: () -> Unit, onUse: (ActionInf
                 } else {
                     Text(
                         when {
-                            data.actions == null -> "Connect to your PC to see its actions."
+                            data.actions == null -> "Connect to Streamer.bot to see your actions."
                             query.isNotBlank() -> "No actions match “${query.trim()}”."
                             else -> "No actions in this group."
                         },
@@ -150,6 +162,14 @@ fun ActionPickerSheet(data: PickerData, onRefresh: () -> Unit, onUse: (ActionInf
                         color = colors.ink,
                         modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
                     )
+                    if (data.actions == null && onOpenSettings != null) {
+                        TonalButton(
+                            text = "Settings",
+                            icon = R.drawable.ic_deck_sliders,
+                            onClick = onOpenSettings,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                    }
                 }
                 Text(
                     "Missing one? Create it in Streamer.bot, then tap refresh.",
@@ -198,7 +218,7 @@ private fun RefreshButton(spinning: Boolean, onClick: () -> Unit) {
 private fun PickerRow(action: ActionInfo, query: String, selected: Boolean, usage: String, onClick: () -> Unit) {
     val colors = DeckTheme.colors
     val style = guessActionStyle(action.name)
-    val palette = colors.tile(style.color)
+    val palette = colors.iconBox(style.tint)
     val second = if (action.enabled) usage else "$usage · off in Streamer.bot"
     Row(
         Modifier

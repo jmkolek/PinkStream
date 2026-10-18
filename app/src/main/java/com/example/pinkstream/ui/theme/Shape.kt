@@ -6,9 +6,6 @@ import androidx.compose.ui.unit.dp
 
 /** Corner sizes from DESIGN.md → Shapes and spacing. */
 object DeckShapes {
-    val tile = RoundedCornerShape(22.dp)
-    val hero = RoundedCornerShape(26.dp)
-    val heroIconBox = RoundedCornerShape(18.dp)
     val settingsCard = RoundedCornerShape(24.dp)
     val listCard = RoundedCornerShape(22.dp)
     val previewStage = RoundedCornerShape(26.dp)
@@ -18,7 +15,9 @@ object DeckShapes {
     val editField = RoundedCornerShape(16.dp)
     val settingsField = RoundedCornerShape(14.dp)
     val searchField = RoundedCornerShape(16.dp)
-    val iconChoice = RoundedCornerShape(15.dp)
+    val dock = RoundedCornerShape(26.dp)
+    val dockIcon = RoundedCornerShape(15.dp)
+    val artChoice = RoundedCornerShape(13.dp)
     val settingsIconTile = RoundedCornerShape(11.dp)
     val segmentTrack = RoundedCornerShape(14.dp)
     val segmentOption = RoundedCornerShape(11.dp)

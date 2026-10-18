@@ -4,27 +4,13 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-/** Background, icon and label colour for one tile colour. */
+/** Background and icon colour for one [IconTint]. */
 @Immutable
-data class TilePalette(val container: Color, val icon: Color, val label: Color)
-
-/** Every colour of the mic hero in one state (Live or Muted). */
-@Immutable
-data class HeroPalette(
-    val container: Color,
-    val border: Color,            // Color.Transparent = no border
-    val shadow: Color,            // Color.Transparent = no shadow
-    val title: Color,
-    val subtitle: Color,
-    val iconBox: Color,
-    val icon: Color,
-    val pill: Color,
-    val pillText: Color,
-)
+data class IconBoxPalette(val container: Color, val icon: Color)
 
 /**
  * The design tokens from DESIGN.md that Material 3's ColorScheme has no slot for
- * (tiles, pills, the hero, connection dot…). Screens read them with `DeckTheme.colors`.
+ * (key shadows, icon boxes, the connection dot…). Screens read them with `DeckTheme.colors`.
  */
 @Immutable
 data class DeckColors(
@@ -33,23 +19,14 @@ data class DeckColors(
     val hairline: Color,
     val ink: Color,
     val inkSecondary: Color,
-    val inactiveTab: Color,
     val primary: Color,
     val onPrimary: Color,
     val primaryContainer: Color,
     val onPrimaryContainer: Color,
-    val tileRose: TilePalette,
-    val tilePeach: TilePalette,
-    val tileLilac: TilePalette,
-    val tileMist: TilePalette,
-    val tileBerry: TilePalette,
-    val tilePlum: TilePalette,
-    val toggleOff: Color,
-    val toggleOffBorder: Color,
-    val toggleOffIcon: Color,
-    val pillOn: Color,            // its text uses the tile's icon colour
-    val pillOff: Color,
-    val pillOffText: Color,
+    val boxRose: IconBoxPalette,
+    val boxPeach: IconBoxPalette,
+    val boxLilac: IconBoxPalette,
+    val boxMist: IconBoxPalette,
     val connected: Color,
     val connectedHalo: Color,
     val offline: Color,
@@ -66,24 +43,26 @@ data class DeckColors(
     val error: Color,
     val errorContainer: Color,
     val onErrorContainer: Color,
-    val onAirShadow: Color,
-    val raisedShadow: Color,      // the coloured part of the raised-card shadow (day only)
-    val segmentShadow: Color,     // under the selected option of a segmented control (day only)
-    val heroLive: HeroPalette,
-    val heroMuted: HeroPalette,
+    val raisedShadow: Color,      // the coloured part of the raised-card shadow
+    val segmentShadow: Color,     // under the selected option of a segmented control
+    // Key shadows (README.md → Shadows): a hard 3 dp edge plus a soft glow, per state.
+    val keyEdgeOff: Color,
+    val keyGlowOff: Color,
+    val keyEdgeOn: Color,
+    val keyGlowOn: Color,
+    val keyLifted: Color,         // under a key being dragged in edit layout mode
+    val pageDot: Color,           // the inactive page dots above the dock
 ) {
-    fun tile(color: TileColor): TilePalette = when (color) {
-        TileColor.ROSE -> tileRose
-        TileColor.PEACH -> tilePeach
-        TileColor.LILAC -> tileLilac
-        TileColor.MIST -> tileMist
-        TileColor.BERRY -> tileBerry
-        TileColor.PLUM -> tilePlum
+    fun iconBox(tint: IconTint): IconBoxPalette = when (tint) {
+        IconTint.ROSE -> boxRose
+        IconTint.PEACH -> boxPeach
+        IconTint.LILAC -> boxLilac
+        IconTint.MIST -> boxMist
     }
 }
 
 /**
  * A CompositionLocal passes a value down the UI tree without handing it to every
- * composable as a parameter. PinkStreamTheme provides the day or night set.
+ * composable as a parameter. PinkStreamTheme provides the (only) light set.
  */
 val LocalDeckColors = staticCompositionLocalOf { DayDeckColors }

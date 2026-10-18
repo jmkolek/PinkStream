@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- The window background shows for a moment before Compose draws; match the deck background. -->
     <style name="Theme.PinkStream" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/window_background</item>
+        <!-- Light only: stop "force dark" on some phones (Samsung, Xiaomi) from inverting the app. -->
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
 </resources>

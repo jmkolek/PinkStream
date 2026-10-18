@@ -27,14 +27,14 @@ import com.example.pinkstream.ui.theme.DeckShapes
 import com.example.pinkstream.ui.theme.DeckTheme
 import com.example.pinkstream.ui.theme.DeckType
 
-/** The button's action, as a row that opens the picker. */
+/** The key's action, as a row that opens the picker. */
 @Composable
-fun ActionRow(draft: ButtonDraft, actions: List<ActionInfo>?, onClick: () -> Unit) {
+fun ActionRow(draft: KeyDraft, actions: List<ActionInfo>?, onClick: () -> Unit) {
     val colors = DeckTheme.colors
     val action = actions?.firstOrNull { it.id == draft.actionId } ?: actions?.firstOrNull { it.name == draft.actionName }
     val title = draft.actionName ?: action?.name ?: "Choose an action"
     val subtitle = when {
-        draft.actionName == null && draft.actionId == null -> "Pick what this button runs"
+        draft.actionName == null && draft.actionId == null -> "Pick what this key runs"
         actions == null -> "Streamer.bot"                          // not connected yet: can't check
         action == null -> "Not in Streamer.bot anymore. Pick another one."
         action.group != null -> "Streamer.bot · ${action.group} group"

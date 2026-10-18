@@ -1,5 +1,6 @@
 package com.example.pinkstream.data.deck
 
+import com.example.pinkstream.ui.icons.DeckKeyArt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -29,9 +30,9 @@ class LayoutBackupTest {
 
     @Test
     fun duplicateIdsAreRejected() {
-        val layout = DefaultLayout.create()
-        val firstButton = layout.pages[0].sections[1].buttons[0]
-        val copied = layout.insertButton(layout.pages[0].sections[1].id, 0, firstButton)
+        val key = DeckKey(newDeckId(), "Gaming", DeckKeyArt.GAMING)
+        val layout = DefaultLayout.create().let { it.insertKey(it.pages[0].id, 0, key) }
+        val copied = layout.insertKey(layout.pages[1].id, 0, key)
         assertNull(LayoutBackup.decode(LayoutBackup.encode(copied)))
     }
 
@@ -41,6 +42,12 @@ class LayoutBackupTest {
         val page = layout.pages[0]
         val broken = layout.copy(pages = listOf(page.copy(id = "")) + layout.pages.drop(1))
         assertNull(LayoutBackup.decode(LayoutBackup.encode(broken)))
+    }
+
+    @Test
+    fun aFileFromBeforeTheRedesignStillImports() {
+        val layout = LayoutBackup.decode(LayoutMigrationTest.OLD_LAYOUT)
+        assertEquals(listOf("Main", "Model"), layout?.pages?.map { it.name })
     }
 
     @Test

@@ -1,7 +1,5 @@
 package com.example.pinkstream.data.settings
 
-import com.example.pinkstream.ui.theme.ThemeMode
-
 /** Where to find Streamer.bot (or OBS). */
 data class ConnectionTarget(val host: String, val port: Int, val password: String)
 
@@ -12,7 +10,6 @@ data class AppSettings(
     val password: String = "",
     val keepScreenOn: Boolean = true,
     val vibrate: Boolean = true,
-    val themeMode: ThemeMode = ThemeMode.AUTO,
     val columns: Int = DEFAULT_COLUMNS,
     /** OBS runs on the same PC as Streamer.bot, so it shares [host]. */
     val obsPort: Int = ConnectionDefaults.OBS_PORT,

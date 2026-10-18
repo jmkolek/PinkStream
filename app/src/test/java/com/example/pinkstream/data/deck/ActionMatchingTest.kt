@@ -1,8 +1,8 @@
 package com.example.pinkstream.data.deck
 
 import com.example.pinkstream.data.streamerbot.ActionInfo
-import com.example.pinkstream.ui.icons.DeckIcon
-import com.example.pinkstream.ui.theme.TileColor
+import com.example.pinkstream.ui.icons.DeckKeyArt
+import com.example.pinkstream.ui.icons.PageIcon
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -16,12 +16,12 @@ class ActionMatchingTest {
     private val test = ActionInfo(id = "t-1", name = "Deck - Test")
 
     private fun button(actionId: String? = null, actionName: String? = null) =
-        DeckButton(id = "b", label = "Gaming", icon = DeckIcon.GAMEPAD, color = TileColor.ROSE, actionId = actionId, actionName = actionName)
+        DeckKey(id = "b", label = "Gaming", art = DeckKeyArt.GAMING, actionId = actionId, actionName = actionName)
 
-    private fun layoutOf(vararg buttons: DeckButton) =
-        DeckLayout(listOf(DeckPage("p", "Main", listOf(DeckSection("s", "Scenes", SectionStyle.GRID, buttons.toList())))))
+    private fun layoutOf(vararg keys: DeckKey) =
+        DeckLayout(listOf(DeckPage("p", "Main", PageIcon.GRID, keys.toList())))
 
-    private fun DeckLayout.onlyButton() = pages.single().sections.single().buttons.single()
+    private fun DeckLayout.onlyButton() = pages.single().keys.single()
 
     @Test
     fun fillsAMissingIdByExactName() {

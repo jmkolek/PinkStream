@@ -24,7 +24,7 @@ import com.example.pinkstream.ui.theme.DeckTheme
 import com.example.pinkstream.ui.theme.DeckType
 
 /**
- * Day / Night / Auto style picker: a mist track with the chosen option raised on a
+ * Columns 3 / 4 style picker: a mist track with the chosen option raised on a
  * white pill. TalkBack reads it as a group of radio buttons.
  */
 @Composable
@@ -41,7 +41,7 @@ fun <T> SegmentedControl(
     Row(
         modifier
             .clip(DeckShapes.segmentTrack)
-            .background(colors.tileMist.container)
+            .background(colors.boxMist.container)
             .padding(3.dp)
             .selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
